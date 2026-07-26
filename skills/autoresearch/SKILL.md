@@ -8,6 +8,8 @@ argument-hint: <idea>
 
 Start a bounded foreground research experiment loop for the user's idea.
 
+分工：本 skill 负责**运行**实验循环（改→测→留/滚→记）。如果用户的任务还没有可跑的 benchmark 任务包（锁定评估 + 开放文件 + program.md），先用 `experiment-forge` 锻造任务包，再回本 skill 跑循环。
+
 Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`.
 
 ## Step 1: Gather
