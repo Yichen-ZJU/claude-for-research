@@ -1,12 +1,12 @@
 ---
 name: experiment-forge
-description: Package a research task into a karpathy-style autonomous experiment package (locked eval + open editable file + program.md instructions + git-as-ledger). Use when the user wants to turn a DL/ML/scientific computing task into a self-driving experiment loop runnable by the autoresearch skill or AutoScientists. Creates the package; does NOT run the loop itself.
+description: Package a research task into a karpathy-style autonomous experiment package (locked eval + open editable file + program.md instructions + git-as-ledger). Use when the user wants to turn a DL/ML/scientific computing task into a self-driving experiment loop runnable by the autoresearch skill. Creates the package; does NOT run the loop itself.
 argument-hint: <task-description>
 ---
 
 # Experiment Forge
 
-把用户的任务锻造成一个"自主实验任务包"（karpathy/autoresearch 结构）。本 skill 只负责**造任务包**；造好后用 `autoresearch` skill（单 agent）或 AutoScientists（多 agent）来跑循环。
+把用户的任务锻造成一个"自主实验任务包"（karpathy/autoresearch 结构）。本 skill 只负责**造任务包**；造好后用 `autoresearch` skill 来跑循环。
 
 ## 任务包结构
 
@@ -44,9 +44,7 @@ argument-hint: <task-description>
 3. 用 `templates/program.md` 生成 `program.md`，替换所有 `<PLACEHOLDER>`。
 4. 生成 `results.tsv` 表头。
 5. **冒烟测试**：亲自跑一次 baseline 确认链路通（这步省不得）。
-6. 交付时告诉用户两条运行路线：
-   - 单 agent：`/autoresearch`（或直接 `claude -p "Read program.md and execute"`）
-   - 多 agent：AutoScientists（参考 `autoscientist/task-autoresearch/` 的包装法）
+6. 交付时告诉用户运行方式：`/autoresearch` 交互式跑，或 `claude -p "Read program.md and execute"` 无头跑。
 
 ## 防-context 爆炸纪律（写进 program.md）
 
