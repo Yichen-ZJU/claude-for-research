@@ -1,0 +1,10 @@
+# 本地文件
+.DS_Store
+*.bak
+*.swp
+
+# 绝不提交密钥
+*.key
+*.pem
+.env
+auth.json
