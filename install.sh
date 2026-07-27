@@ -17,8 +17,6 @@ fi
 backup_if_exists() {
   local target="$1"
   if [ -e "$target" ]; then
-    # 备份到 ~/.claude/backups/<时间戳>/ 下，保持相对路径结构
-    # （不能放在 skills/ 目录内，否则 .bak 目录会被当成 skill 加载）
     local bakroot="$CLAUDE_DIR/backups/$(date +%Y%m%d%H%M%S)"
     local rel="${target#$CLAUDE_DIR/}"
     local bak="$bakroot/$rel"
