@@ -28,6 +28,8 @@ argument-hint: <task-description>
 5. **VRAM/资源软约束**：允许合理增长，不允许爆炸。
 6. **首跑必基线**：第一次运行必须是不改任何代码的 baseline。
 7. **简洁性准则**：同等效果更简为赢；0.001 提升加 20 行 hack 不值得。
+8. **Guard 防回归**：配一条每轮必须通过的安全命令（如冒烟测试 `pytest -x tests/smoke`）。指标涨但 Guard 挂 → 照样 revert。
+9. **min_delta 确认跑**：改进幅度小于阈值时视为噪声 —— 重跑 1-2 次取中位数再定 keep/discard。
 
 ## 安全红线（所有生成的 program.md 必须包含）
 
