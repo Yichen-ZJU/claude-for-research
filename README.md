@@ -3,7 +3,7 @@
 Claude Code 科研增强包：95 个研究技能 + 4 个专业子代理 + 全局研究约定。
 从 Feynman 科研 CLI 迁移并适配 Claude Code 原生机制（Agent 工具、alphaxiv MCP、Cron、skills 体系）。
 
-> **功能定位**：调研→实验→写作的完整科研工作流。深度优化（Arbor）和团队作战（AutoScientists）为 [Pro 版](https://github.com/Yichen-ZJU/claude-for-research-pro)独有。
+> **功能定位**：调研→实验→写作的完整科研工作流。另有功能更强的私有 Pro 版。
 
 ## 一键部署
 
@@ -75,15 +75,9 @@ slug 命名（≤5 词）、`<slug>.provenance.md` 溯源 sidecar、验证状态
 
 ---
 
-## Pro 版额外能力
+## Pro 版
 
-[Pro 版](https://github.com/Yichen-ZJU/claude-for-research-pro)在本版基础上额外拥有：
-
-- **Arbor 假设树优化器**（11 skills + CLI dashboard + `/steer` 人工引导）—— 单目标深度攻坚
-- **AutoScientists 多智能体团队** —— 多方向并行撒网
-- **orchestrator 深度优化/团队路由** —— 自动选择最优引擎
-- **论文总装线**（paper-production 7 阶段 + 质量门）：含 intro-drafter 六段式、idea-evaluator 五维判决、pre-submission-reviewer 写作品味审查、style-calibration 作者声纹、ai-use-disclosure 投稿合规、systematic-review PRISMA 系统综述
-- **94+ 领域框架 skills**（含机器人策略、多 RL 框架、RAG、prompt 工具、安全对齐等）
+本仓库的完整公开版。作者另有一个功能更强的私有增强版，不对外发布。
 
 ---
 
