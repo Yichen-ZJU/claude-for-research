@@ -1,12 +1,10 @@
 ---
 name: experiment-forge
-description: Package a research task into a karpathy-style autonomous experiment package (locked eval + open editable file + program.md instructions + git-as-ledger). Use when the user wants to turn a DL/ML/scientific computing task into a self-driving experiment loop runnable by the autoresearch skill or AutoScientists. Creates the package; does NOT run the loop itself.
 argument-hint: <task-description>
 ---
 
 # Experiment Forge
 
-把用户的任务锻造成一个"自主实验任务包"（karpathy/autoresearch 结构）。本 skill 只负责**造任务包**；造好后用 `autoresearch` skill（单 agent）或 AutoScientists（多 agent）来跑循环。
 
 ## 任务包结构
 
@@ -31,6 +29,18 @@ argument-hint: <task-description>
 6. **首跑必基线**：第一次运行必须是不改任何代码的 baseline。
 7. **简洁性准则**：同等效果更简为赢；0.001 提升加 20 行 hack 不值得。
 
+## 安全红线（所有生成的 program.md 必须包含）
+
+借鉴 ARIS dse-loop 的 NEVER 清单。agent 在实验循环中**永远不许**：
+
+- `sudo` 任何命令
+- `rm -rf` / `rm -r`，或删除任何不是本次会话创建的文件
+- 未读先改：覆盖任何现有源码文件前必须先读它
+- 破坏性 git 操作：`git push --force`、`git reset --hard` 到循环外状态、`git clean -fd`
+- 杀掉不是本实验启动的进程
+- 向外部网络发送数据（除非任务明确要求）
+- 修改锁定文件（prepare.py / 评估脚本 / 依赖清单）——任何情况下
+
 ## Git 即台账
 
 - 每次运行开专支：`autoresearch/<tag>`（tag 用日期，如 `jul26`）
@@ -46,7 +56,6 @@ argument-hint: <task-description>
 5. **冒烟测试**：亲自跑一次 baseline 确认链路通（这步省不得）。
 6. 交付时告诉用户两条运行路线：
    - 单 agent：`/autoresearch`（或直接 `claude -p "Read program.md and execute"`）
-   - 多 agent：AutoScientists（参考 `autoscientist/task-autoresearch/` 的包装法）
 
 ## 防-context 爆炸纪律（写进 program.md）
 

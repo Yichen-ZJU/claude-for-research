@@ -103,4 +103,4 @@ git pull && ./install.sh
 
 ## 致谢
 
-本库从 [Feynman](https://github.com/getcompanion-ai) 科研 CLI 全量迁移，并适配 Claude Code。领域 skills 来自 [Orchestra AI-Research-SKILLs](https://github.com/orchestra-research/ai-research-skills)（MIT）。各组件许可见原始仓库。
+本库从 [Feynman](https://github.com/getcompanion-ai) 科研 CLI 全量迁移，并适配 Claude Code。领域 skills 来自 [Orchestra AI-Research-SKILLs](https://github.com/orchestra-research/ai-research-skills)（MIT）；实验队列、watchdog、安全红线来自 [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep)（MIT）。各组件许可见原始仓库。
