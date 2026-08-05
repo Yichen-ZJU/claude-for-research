@@ -67,7 +67,7 @@ LOOP FOREVER:
 6. If grep is empty, the run crashed: `tail -n 50 run.log` for the stack trace. Easy fix (typo, missing import) → fix and re-run. Fundamentally broken idea → log `crash`, move on.
 7. Record in results.tsv (do NOT commit results.tsv — leave it untracked).
 8. Metric improved → keep the commit, the branch advances.
-9. Metric equal/worse → `git reset --hard` back to the pre-experiment commit.
+9. Metric equal/worse → `git revert HEAD --no-edit` (NOT reset — failed experiments stay in history so future iterations can learn what doesn't work).
 
 **Timeout**: if a run exceeds <KILL_THRESHOLD, e.g. 2× budget>, kill it and treat as failure (discard and revert).
 
