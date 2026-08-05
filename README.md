@@ -3,7 +3,7 @@
 Claude Code 科研增强包：95 个研究技能 + 4 个专业子代理 + 全局研究约定。
 从 Feynman 科研 CLI 迁移并适配 Claude Code 原生机制（Agent 工具、alphaxiv MCP、Cron、skills 体系）。
 
-> **功能定位**：调研→实验→写作的完整科研工作流。另有功能更强的私有 Pro 版。
+> **功能定位**：调研→实验→写作的完整科研工作流。
 
 ## 一键部署
 
@@ -72,12 +72,6 @@ alphaXiv 官方 MCP（`discover_papers` / `get_paper_content` / `answer_pdf_quer
 产物落盘：`outputs/`、`papers/`、`notes/`、`outputs/.plans/`、`CHANGELOG.md`。
 slug 命名（≤5 词）、`<slug>.provenance.md` 溯源 sidecar、验证状态诚实标注（verified/unverified/blocked/inferred）。
 宁可标 `blocked`，不许编造来源。
-
----
-
-## Pro 版
-
-本仓库的完整公开版。作者另有一个功能更强的私有增强版，不对外发布。
 
 ---
 
