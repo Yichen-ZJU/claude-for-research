@@ -27,10 +27,15 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 否则收集（一次问完）：
 - 优化目标、benchmark 命令、指标名/单位/方向
 - 可改文件范围（scope）
-- **目标类型**：参数调优 / 架构探索 / 混合（影响选步表的初始倾向，不锁死）
+- **改动尺度（scale）**：三选一 ——
+  - `params`：只调参数（超参/配置/小 trick），锁死架构改动
+  - `arch`：只做架构/方法级改动，不在参数上磨
+  - `auto`（默认）：不设限，每轮由选步表按上轮结果自由决定（参数级和架构级可混用）
 - **Guard 命令**（可选但推荐）：每轮必须通过的安全检查（如冒烟测试）
 - **min_delta**（可选）：小于此幅度的"改进"视为噪声，触发确认跑
 - maxIterations（默认 20；无人值守模式建议 50+ 或 unlimited）
+
+未明确指定 scale 时默认 `auto` 并在确认计划时向用户说明。
 
 ## Step 2: Environment
 
@@ -61,7 +66,12 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 | 升级 escalate | plateau（连续 5 轮无 keep） | 合并历次 near-miss / 结构性改动 / 读参考文献找角度 |
 | 简化 simplify | 指标持平但代码更少 | 保留，记 keep（简洁性胜利） |
 
-这是策略指导不是状态机 —— 每轮在 jsonl 里记 `move` 类型和理由。目标类型只影响初始倾向：参数调优偏 follow/reverse/switch，架构探索偏 escalate；循环中可随时按证据切换尺度。
+这是策略指导不是状态机 —— 每轮在 jsonl 里记 `move` 类型和理由。
+
+**尺度约束（scale）对选步表的裁剪**：
+- `params`：**禁用 escalate**（不做架构改动）。plateau 时不升级，而是换杆到未试过的参数/重新扫范围；真没参数可动了就向用户报告并建议是否解除限制。
+- `arch`：**跳过参数微调**，follow/reverse/switch 都作用于模块/结构层面；参数只作为新架构的配套调整。
+- `auto`：全表可用，尺度切换由证据驱动。
 
 ### 4.3 Modify + Commit
 - 原子改动（一个逻辑单元），只在 scope 内
