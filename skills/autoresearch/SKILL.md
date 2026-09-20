@@ -20,6 +20,13 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 | 硬停止 | maxIterations / 用户打断 | maxIterations / timeout |
 | 问用户 | 环境选择、计划确认、停滞建议 | 不问（NEVER STOP） |
 
+**被 research-orchestrator 调用时**：视为无人值守 —— Step 2/3 的交互闸门（AskUserQuestion 环境选择、计划确认）**跳过**。环境沿用调用方已确认的选择或任务包 program.md 的约定；若没有任何已确认配置且无法交互，报 `blocked` 而不是擅自假设。orchestrator 的 Gate 已经做过确认，这里不再二次确认。
+
+## Step 0: 前置检查
+
+- 在 git 仓库内运行；若 `git config user.email` 为空，`git commit` 会失败 —— 先补 repo-local 身份（`git config user.name/email`，询问用户或用已有仓库的惯用身份），再进循环。
+- 工作树不干净 / detached HEAD → 提示用户后再继续（无人值守模式：开专支即可，不阻塞）。
+
 ## Step 1: Gather
 
 如果 `autoresearch.md` 和 `autoresearch.jsonl` 已存在，问用户续跑还是新开。`CHANGELOG.md` 存在则先读最近条目。
