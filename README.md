@@ -1,94 +1,91 @@
-# Claude for Research
+<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/"><img src="assets/research-cover.png" alt="Claude for Research — Turn your AI CLI into an autonomous research lab" width="100%"></a></p>
 
-Claude Code 科研增强包：95 个研究技能 + 4 个专业子代理 + 全局研究约定。
-从 Feynman 科研 CLI 迁移并适配 Claude Code 原生机制（Agent 工具、双论文检索后端（arxiv MCP 主 + alphaxiv 增强）、Cron、skills 体系）。调研任务强制走 deep-research Skill 管线。
+<h1 align="center">Claude for Research</h1>
+<p align="center"><strong>让想法，走到发现。<br>Turn your AI CLI into an autonomous research lab.</strong></p>
+<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/?lang=zh">中文主页</a> · <a href="https://yichen-zju.github.io/claude-for-research/?lang=en">English website</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Codex for Research</a></p>
+<p align="center"><img src="https://img.shields.io/badge/skills-115-B7F7D4?style=flat-square&amp;labelColor=101312" alt="115 skills"> <img src="https://img.shields.io/badge/engine-Claude%20Code-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Claude Code"> <img src="https://img.shields.io/badge/workflow-research%20%E2%86%92%20experiments%20%E2%86%92%20papers-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Research to experiments to papers"></p>
 
-> **功能定位**：调研→实验→写作的完整科研工作流。
+把 **Claude Code** 变成一个自主科研工作台。从文献调研与选题，到无人值守的模型改进试验，再到论文写作与评审，由 **Research Orchestrator** 协调全程，115 个科研技能提供工作流与领域方法。
 
-## 一键部署
+同一套技能目录也运行在 **Codex CLI** 上：选择习惯的 CLI，保留熟悉的科研流程。两个仓库各含 **115 个技能，技能名称集合一致**；工具调用与运行机制分别适配各自引擎。
+
+Equip **Claude Code** with an autonomous research workflow. **Research Orchestrator** coordinates literature and ideation, unattended model-improvement experiments, and writing and review. **115 skills** supply the research workflows and domain methods. The same skill catalogue runs on **Codex CLI**, with engine-specific tool adaptations.
+
+## 一套流程，两层循环 / One workflow, two loops
+
+```mermaid
+flowchart TD
+  Q[研究问题 / Research question] --> L[文献与构思 / Literature and ideas]
+  L --> F[Experiment Forge: task package]
+  subgraph INNER[内循环 / Inner experiment loop]
+    M[改模型 / Modify] --> T[固定评估 / Measure]
+    T --> K[保留或回滚 / Keep or revert]
+    K --> M
+  end
+  F --> M
+  K --> R[外循环反思 / Reflect]
+  R --> D{DEEPEN / BROADEN / PIVOT / CONCLUDE}
+  D -->|继续研究 / Continue| L
+  D -->|收尾 / Conclude| W[图表、论文与评审 / Figures, paper and review]
+```
+
+**内循环优化模型，外循环判断方向。** Autoresearch 在任务包的范围与预算内反复修改、测量、保留或回滚；Orchestrator 汇总实验与文献证据，决定深入、拓宽、转向或收尾，让下一轮试验服务于研究问题。
+
+**The inner loop improves the model; the outer loop steers the research.** Autoresearch iterates within the task package's scope and budget. Orchestrator reflects on experimental and literature evidence and chooses whether to deepen, broaden, pivot, or conclude.
+
+## 从调研到论文 / From evidence to a paper
+
+| 阶段 / Stage | 能力 / Capability | 代表技能 / Skills |
+|---|---|---|
+| 调研与构思 / Research & ideation | 广度扫描、全文核验、跨领域构思、选题评价 / Map the field, verify full text, generate and evaluate ideas | `deep-research`, `literature-review`, `brainstorming-research-ideas`, `creative-thinking-for-research`, `idea-evaluator` |
+| 任务包与优化 / Experiment packages & optimization | 锁定评估、开放模型文件、设定目标与预算；自主运行改→测→留/滚 / Fix evaluation, expose editable model files, set goals and budgets; run modify→measure→keep/revert | `experiment-forge`, `autoresearch`, `run-experiment`, `experiment-queue`, `experiment-watchdog` |
+| 写作与评审 / Writing & review | 叙事规划、科研图表、论文起草、引用核验、对抗性评审 / Plan the narrative, build figures, draft, verify citations and review | `paper-production`, `paper-writing`, `paper-narrative`, `academic-plotting`, `research-review`, `paper-code-audit` |
+| 全程协调 / Orchestration | 维护研究状态，协调内外循环，推动成果收尾 / Maintain research state, coordinate both loops and assemble deliverables | `research-orchestrator` |
+
+### Experiment Forge → Autoresearch
+
+Forge 将想法锻造成 **Karpathy 式任务包**：`program.md` 说明目标、预算和边界，固定数据与评估入口，明确可修改的模型或训练文件，准备依赖与结果记录。Autoresearch 接过任务包，在给定算力与时间内自主探索模型结构、训练策略等改动，以准确率、损失或吞吐等指定指标指导保留与回滚。
+
+Forge turns an idea into a **Karpathy-style task package**: a `program.md` brief, a fixed evaluation, editable model or training files, dependencies, and a result ledger. Autoresearch executes the unattended improvement loop, using the chosen metric to guide which changes to keep or revert.
+
+### ArXiv MCP · 全文级证据 / Full-text evidence
+
+`search_papers → download_paper → search_paper_text`：先检索，再下载全文，在文内核验关键声明。来源、版本与 provenance 跟随产物保存，让结论可以回到原文检查。
+
+Search papers, download full text, and check load-bearing claims inside the paper. Sources, versions and provenance travel with the outputs so the evidence can be inspected.
+
+### 115 个技能 / 115 research skills
+
+覆盖研究设计、实验、写作、评审、生物与分子模型、训练与对齐、多模态、模型效率、可解释性、科研图表、评测和算力追踪 **12 个分组**。例如 `alphafold2`、`peft`、`deepspeed`、`llava`、`flash-attention`、`transformer-lens`、`lm-evaluation-harness` 和 `mlflow`。
+
+The 115 total skills span **12 groups**, including research workflows, biological models, training and alignment, multimodal models, efficiency, interpretability, figures, evaluation, and compute. [Browse the searchable skill catalogue →](https://yichen-zju.github.io/claude-for-research/#skills)
+
+<a id="quickstart"></a>
+## 快速开始 / Quickstart
+
+先安装并登录 Claude Code，然后在 Bash 环境中运行： / Install and sign in to Claude Code, then run in Bash:
 
 ```bash
 git clone https://github.com/Yichen-ZJU/claude-for-research.git
 cd claude-for-research
-./install.sh              # 基础安装
-./install.sh --with-mcp   # 配置双论文检索后端：arxiv MCP（自动）+ alphaXiv（可选，注册前探测 key 有效性）
+./install.sh
 ```
 
-已存在的同名文件自动备份到 `~/.claude/backups/`，不静默覆盖。
+安装器会备份同名技能、代理与 CLAUDE.md 到 `~/.claude/backups/`。 / Existing matching skills, agents and CLAUDE.md are backed up before installation.
 
----
-
-## 包含什么
-
-### 13 个研究工作流
-
-| Skill | 用途 |
-|---|---|
-| `deep-research` | 多源深度调研 → 带引用报告 + provenance |
-| `literature-review` | 文献综述 / 实验室-作者发表轨迹 |
-| `replication` | 论文复现（环境可选 local/venv/docker/Modal/RunPod） |
-| `ml-training-recipe` | 有结果背书的 ML 训练配方 |
-| `research-review` | 论文/草稿的对抗性评审 |
-| `paper-code-audit` | 论文声明 vs 代码实现审计 |
-| `source-comparison` | 多来源对比矩阵 |
-| `summarize` | RLM 模式总结长文档/PDF |
-| `autoresearch` | 有界实验循环（改→测→留/滚→记） |
-| `experiment-forge` | karpathy 式任务包锻造（锁定评估 + open file + program.md） |
-| `watch` | 主题监控基线 + 定时跟进 |
-| `jobs` / `session-log` | 运行状态盘点 / 会话日志 |
-
-### 研究总指挥：research-orchestrator
-
-双循环架构：内循环跑实验（autoresearch / karpathy 模式），外循环反思定向（DEEPEN / BROADEN / PIVOT / CONCLUDE）。项目记忆（`findings.md`）跨会话保持。
-
-### 论文写作能力
-
-| 能力 | Skill |
-|---|---|
-| 起草（writer 子代理 + verifier 引用核验） | `paper-writing` |
-| ML 会议 LaTeX 模板 | `ml-paper-writing` |
-| 叙事弧线与图规划 | `paper-narrative` |
-| 科学图表（单图/多图/质量检查） | `figure-style` / `figure-composer` / `academic-plotting` |
-| 论文 vs 代码审计 | `paper-code-audit` |
-| 系统会议写作 | `systems-paper-writing` |
-
-### 领域技能（50+ 框架覆盖）
-
-微调：`peft` / `unsloth` / `llama-factory` · 分布式：`pytorch-fsdp2` / `deepspeed` / `megatron-core` / `accelerate` · 蒸馏压缩：`knowledge-distillation` / `model-pruning` / `long-context` / `moe-training` · 多模态：`clip` / `llava` / `blip-2` / `whisper` / `segment-anything` / `stable-diffusion` · 生物模型：`alphafold2` / `boltz` / `evo2` / `diffdock` 等 · 评测：`lm-evaluation-harness` / `nemo-evaluator` · 训练优化：`flash-attention` / `bitsandbytes` / `gptq` / `awq` · 实验追踪：`weights-and-biases` / `mlflow` / `tensorboard` · 算力：`docker` / `modal-compute` / `runpod-compute` / `remote-compute-ssh`
-
-### 4 个子代理（`~/.claude/agents/`）
-
-- **researcher** — 证据收集（无 URL 不收录）
-- **verifier** — 逐条引用 + URL 核验 + 删无源声明
-- **reviewer** — 对抗性评审（FATAL/MAJOR/MINOR）
-- **writer** — 证据约束起草（不加引用，交给 verifier）
-
-### 论文搜索后端
-
-检索后端（优先级+自动降级）：arxiv MCP（`mcp__arxiv__*`，主，无 key）→ alphaxiv MCP（可用时优先语义发现；401 即降级）→ WebSearch/WebFetch 兜底。覆盖 arXiv，不含 PubMed。
-
-### 研究约定（全局 CLAUDE.md）
-
-产物落盘：`outputs/`、`papers/`、`notes/`、`outputs/.plans/`、`CHANGELOG.md`。
-slug 命名（≤5 词）、`<slug>.provenance.md` 溯源 sidecar、验证状态诚实标注（verified/unverified/blocked/inferred）。
-宁可标 `blocked`，不许编造来源。
-
----
-
-## 更新与同步
+全文调研还需 ArXiv MCP： / For full-text research, install ArXiv MCP:
 
 ```bash
-# 改 skills/agents/约定
-vim skills/<name>/SKILL.md && ./install.sh && git add -A && git commit -m "..." && git push
-
-# 其他服务器更新
-git pull && ./install.sh
+uv tool install arxiv-mcp-server
+claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 ```
 
-## 可选依赖
+安装后开启新会话，用一个明确的问题开始，例如： / Start a new session with a concrete research question:
 
-基础零依赖（MCP 只需 API key）。按需：`docker`、`modal`、`runpodctl`。
+> 用 research-orchestrator 研究怎样改善手写数字分类器。先调研与构思，再用 experiment-forge 构造任务包，在固定评估下运行 autoresearch；结合结果反思方向，最后整理图表、实验报告和论文草稿。
 
-## 致谢
+> Use research-orchestrator to investigate a handwritten-digit classifier. Research and propose ideas, forge a task package, run autoresearch against a fixed evaluation, reflect on the direction, and assemble figures, an experiment report, and a paper draft.
 
-本库从 [Feynman](https://github.com/getcompanion-ai) 科研 CLI 全量迁移，并适配 Claude Code。领域 skills 来自 [Orchestra AI-Research-SKILLs](https://github.com/orchestra-research/ai-research-skills)（MIT）；实验队列、watchdog、安全红线来自 [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep)（MIT）。各组件许可见原始仓库。
+[在主页观看内外双循环动画 / Watch the nested-loop workflow →](https://yichen-zju.github.io/claude-for-research/#walkthrough)
+
+<sub>感谢开源仓库 / Thanks to [autoresearch](https://github.com/karpathy/autoresearch), [Feynman](https://github.com/Companion-Inc/feynman), and [AI Research Skills](https://github.com/Orchestra-Research/AI-Research-SKILLs). 各组件许可见原始文件与仓库 / Component licenses remain in their source files and repositories.</sub>
