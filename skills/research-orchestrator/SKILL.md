@@ -24,7 +24,6 @@ argument-hint: <research-question-or-project-dir>
 | 蒸馏/压缩/长上下文 | `knowledge-distillation`、`model-pruning`、`long-context` |
 | 多模态模型 | `clip`、`llava`、`blip-2`、`whisper`、`segment-anything` 等 18 类 |
 | 评测 | `lm-evaluation-harness`、`nemo-evaluator` |
-| 数据处理 | `nemo-curator` |
 | 实验追踪 | `weights-and-biases`、`mlflow`、`tensorboard` |
 | 论文写作 | `paper-writing`（流程）+ `ml-paper-writing`（ML 会议 LaTeX 模板） |
 | 图表 | `figure-style`、`figure-composer`、`academic-plotting` |

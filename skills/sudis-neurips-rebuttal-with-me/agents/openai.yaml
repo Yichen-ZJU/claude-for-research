@@ -1,0 +1,6 @@
+interface:
+  display_name: "SUDIS NeurIPS Rebuttal With Me"
+  short_description: "NeurIPS rebuttals, meta-reviews, and discussion planning"
+  default_prompt: "Use $sudis-neurips-rebuttal-with-me with the general SUDIS rebuttal skill to analyze this NeurIPS case and prepare safe per-review responses."
+policy:
+  allow_implicit_invocation: true

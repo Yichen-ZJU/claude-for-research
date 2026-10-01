@@ -1,0 +1,6 @@
+interface:
+  display_name: "SUDIS ARR Rebuttal With Me"
+  short_description: "ARR-specific author responses and issue reports"
+  default_prompt: "Use $sudis-arr-rebuttal-with-me with the general SUDIS rebuttal skill to analyze this ARR case and prepare a safe author response."
+policy:
+  allow_implicit_invocation: true

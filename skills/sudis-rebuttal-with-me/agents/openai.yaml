@@ -1,0 +1,6 @@
+interface:
+  display_name: "SUDIS Rebuttal With Me"
+  short_description: "Safe strategy, drafting, and follow-up for rebuttals"
+  default_prompt: "Use $sudis-rebuttal-with-me to analyze these reviews and build a safe, evidence-grounded rebuttal plan."
+policy:
+  allow_implicit_invocation: true
