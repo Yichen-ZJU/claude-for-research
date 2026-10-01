@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "case_id": "",
+  "stage": "intake",
+  "intake_mode": "unknown",
+  "paper_status": "missing",
+  "raw_review_status": "unknown",
+  "author_response_status": "unknown",
+  "venue": {
+    "name": "",
+    "cycle": "",
+    "track": "",
+    "rules_url": "",
+    "rules_fetched_at": "",
+    "profile": "",
+    "rules_profile_id": "",
+    "rules_revision": "",
+    "response_mode": "",
+    "limit_status": "unknown",
+    "limit_source": "",
+    "limit_unit": "",
+    "limit_value": null,
+    "links_allowed": false,
+    "files_allowed": false,
+    "paper_revision_allowed": false,
+    "new_results_policy": "unknown",
+    "arr": {
+      "thread_response_counts": {}
+    },
+    "neurips": {
+      "phase": "unknown",
+      "initial_meta_review_status": "unknown",
+      "contribution_type": "",
+      "response_files": {},
+      "response_channel": "",
+      "review_count": 0,
+      "additional_review_expected": false,
+      "proceed_without_meta_review_approved": false,
+      "timeline": {
+        "initial_response_start": "",
+        "initial_response_end": "",
+        "author_reviewer_ac_start": "",
+        "author_action_deadline": "",
+        "reviewer_ac_only_start": "",
+        "reviewer_ac_discussion_end": "",
+        "email_summary_end": "",
+        "timeline_conflict_status": "unknown",
+        "author_action_deadline_verified": false,
+        "current_openreview_form_verified_at": ""
+      }
+    }
+  },
+  "deadlines": {},
+  "reviewers": [],
+  "issues": [],
+  "evidence": [],
+  "commitments": [],
+  "approvals": {
+    "strategy": "pending",
+    "facts": "pending",
+    "paste_ready": "pending",
+    "escalation": "not_requested"
+  }
+}
