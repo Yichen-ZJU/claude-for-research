@@ -25,7 +25,8 @@ State file format (queue_state.json):
     {
       "id": "s200_N64_n50K",
       "phase": "distill",
-      "status": "running",  # pending|running|completed|failed_oom|stuck
+      "status": "running",  # pending|running|completed|failed_oom|failed_other|stuck
+                              # (failed_* may be requeued to pending by OOM retry)
       "gpu": 3,
       "screen_name": "EQ_s200_N64_n50K",
       "pid": 12345,
@@ -54,6 +55,15 @@ from pathlib import Path
 OOM_RE = re.compile(r"(CUDA out of memory|torch\.OutOfMemoryError)")
 DEFAULT_GPU_FREE_THRESHOLD_MIB = 500
 POLL_INTERVAL_SEC = 60
+
+# State machine (A4): distinguish TERMINAL from SUCCESS.
+# - failed_* and stuck are terminal-but-not-success: the queue can
+#   finish (all_done accepts them) yet dependent phases never unlock
+#   (phase_ready only accepts "completed").
+# - failed_oom may be requeued to "pending" by the OOM retry logic;
+#   that is the only allowed transition out of a terminal state.
+TERMINAL_STATES = ("completed", "failed_oom", "failed_other", "stuck")
+SUCCESS_STATES = ("completed",)
 
 
 def resolve_conda_hook(manifest_hook=None):
@@ -123,8 +133,26 @@ def free_gpus(allowed, threshold_mib=DEFAULT_GPU_FREE_THRESHOLD_MIB):
 
 
 def screen_exists(name):
-    out, _ = run(f"screen -ls | grep -F '.{name}\\t'")
-    return name in out
+    """Return True if a detached/attached screen session `name` exists.
+
+    Parses `screen -ls` output in Python (lines look like
+    "\t12345.EQ_job\t(Detached)"). Do NOT route this through
+    grep/shell quoting: the session name must match exactly the text
+    after the leading "<pid>." and before the tab/status field.
+    """
+    out, _ = run("screen -ls 2>/dev/null")
+    for line in out.splitlines():
+        line = line.strip()
+        if not line or "." not in line:
+            continue
+        # Strip leading pid: "12345.EQ_job\t(Detached)" -> "EQ_job"
+        pid, dot, rest = line.partition(".")
+        if not dot or not pid.isdigit():
+            continue  # header or socket-summary line, not a session
+        session = re.split(r"\t|\s", rest, maxsplit=1)[0].strip()
+        if session == name:
+            return True
+    return False
 
 
 def kill_screen(name):
@@ -142,16 +170,36 @@ def detect_oom_in_log(log_path):
         return False
 
 
-def output_exists(path_pattern, cwd):
-    """Check if output file exists (pattern supports shell glob)."""
+def output_exists(path_pattern, cwd, min_mtime=None):
+    """Check whether expected output exists, via Python glob (no shell).
+
+    Semantics:
+    - The pattern is matched with glob.glob against `cwd` (relative or
+      absolute patterns both work, including wildcards such as
+      "figures/distill_*.json").
+    - True iff at least one match is a REGULAR FILE with size > 0.
+      Directories never count; empty (0-byte) files never count.
+    - If multiple files match, existence (not count) is reported.
+    - `min_mtime` (epoch seconds): only files modified at or after
+      this timestamp count. This isolates a run from stale result
+      files left by earlier runs of a same-named job — a file written
+      before the job started cannot satisfy the check.
+    """
     if not path_pattern:
         return False
     full = os.path.join(cwd, path_pattern) if not os.path.isabs(path_pattern) else path_pattern
-    out, _ = run(f"ls {shlex.quote(full)} 2>/dev/null | wc -l")
-    try:
-        return int(out.strip()) > 0
-    except ValueError:
-        return False
+    import glob
+    for hit in glob.glob(full):
+        p = Path(hit)
+        try:
+            if not p.is_file() or p.stat().st_size == 0:
+                continue
+            if min_mtime is not None and p.stat().st_mtime < min_mtime:
+                continue
+        except OSError:
+            continue
+        return True
+    return False
 
 
 def load_state(state_file, manifest):
@@ -185,24 +233,36 @@ def save_state(state, state_file):
 
 
 def phase_ready(phase_name, state):
-    """Check if all depends_on phases are completed."""
+    """Check if all depends_on phases SUCCEEDED (status "completed").
+
+    A dependency that ended failed/stuck/failed_other never unlocks
+    downstream phases: jobs depending on its artifacts must not start.
+    """
     for p in state["phases"]:
         if p["name"] == phase_name:
             if not p["depends_on"]:
                 return True
             for dep in p["depends_on"]:
                 dep_phase = next((x for x in state["phases"] if x["name"] == dep), None)
-                if not dep_phase or dep_phase["status"] != "completed":
+                if not dep_phase or dep_phase["status"] not in SUCCESS_STATES:
                     return False
             return True
     return False
 
 
-def phase_complete(phase_name, state):
+def phase_all_terminal(phase_name, state):
+    """True when every job in the phase reached a TERMINAL state."""
     phase_jobs = [j for j in state["jobs"] if j.get("phase") == phase_name]
     if not phase_jobs:
         return False
-    return all(j["status"] in ("completed", "stuck") for j in phase_jobs)
+    return all(j["status"] in TERMINAL_STATES for j in phase_jobs)
+
+
+def phase_all_success(phase_name, state):
+    phase_jobs = [j for j in state["jobs"] if j.get("phase") == phase_name]
+    if not phase_jobs:
+        return False
+    return all(j["status"] in SUCCESS_STATES for j in phase_jobs)
 
 
 def assign_jobs_to_phases(manifest, state):
@@ -223,27 +283,48 @@ def assign_jobs_to_phases(manifest, state):
                     "pid": None,
                     "attempts": 0,
                     "started": None,
+                    "started_ts": None,   # epoch seconds, set at launch
+                    "log_file": None,     # per-attempt log, set at launch
+                    "exit_file": None,    # atomic exit-code marker
                     "completed": None,
                     "error": None,
                 })
 
 
 def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook):
-    """Launch job in a detached screen, return (screen_name, pid)."""
+    """Launch job in a detached screen, return (screen_name, pid).
+
+    Per attempt (A3): the log file and an atomic exit-code marker are
+    namespaced by attempt number, so a retried job never reads a stale
+    marker/log from a previous attempt. The inner bash writes the
+    command's real exit code to the marker just before exiting.
+    """
     screen_name = f"EQ_{job['id']}"
     if screen_exists(screen_name):
         # Shouldn't happen; clean up
         kill_screen(screen_name)
         time.sleep(2)
-    log_file = os.path.join(log_dir, f"{job['id']}.log")
+    attempt = job["attempts"] + 1
+    log_file = os.path.join(log_dir, f"{job['id']}.a{attempt}.log")
+    exit_file = log_file + ".exit"
+    # Remove stale marker from a previous attempt, if any
+    try:
+        os.remove(exit_file)
+    except OSError:
+        pass
     cmd = job["cmd"]
     # Substitute GPU placeholder if present
     cmd_with_gpu = cmd.replace("${GPU}", str(gpu))
+    inner = (
+        f'{{ CUDA_VISIBLE_DEVICES={gpu} {cmd_with_gpu}; '
+        f'ec=$?; echo $ec > {shlex.quote(exit_file)}; exit $ec; }} '
+        f'2>&1 | tee {shlex.quote(log_file)}'
+    )
     full = (
         f'cd {shlex.quote(cwd)} && '
         f'{conda_hook} && '
         f'conda activate {conda_env} && '
-        f'CUDA_VISIBLE_DEVICES={gpu} {cmd_with_gpu} 2>&1 | tee {shlex.quote(log_file)}'
+        f'{inner}'
     )
     screen_cmd = f'screen -dmS {screen_name} bash -c {shlex.quote(full)}'
     run(screen_cmd)
@@ -253,46 +334,79 @@ def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook):
         f"ps -ef | grep 'CUDA_VISIBLE_DEVICES={gpu} ' | grep -v grep | "
         f"grep python | awk '{{print $2}}' | head -1")
     pid = pid_out.strip()
+    job["log_file"] = log_file
+    job["exit_file"] = exit_file
+    job["started_ts"] = time.time()
     return screen_name, (int(pid) if pid.isdigit() else None)
 
 
+def read_exit_marker(exit_file):
+    """Return int exit code from the marker file, or None if absent/invalid."""
+    if not exit_file:
+        return None
+    try:
+        txt = Path(exit_file).read_text().strip()
+        return int(txt)
+    except (OSError, ValueError):
+        return None
+
+
 def job_status_check(job, log_dir, cwd):
-    """Return new status for a running job."""
+    """Return (new_status, error) for a running job.
+
+    Completion (A3) requires ALL of:
+      1. the process has ended (atomic exit marker written, or the
+         screen session is gone), AND
+      2. the exit code is 0 when a marker exists, AND
+      3. expected_output matches a non-empty file written AFTER this
+         attempt started (mtime >= started_ts), when an output pattern
+         is declared.
+    A stale result file from an earlier run can therefore never mark a
+    job completed.
+    """
     screen_name = job["screen_name"]
-    log_file = os.path.join(log_dir, f"{job['id']}.log")
+    log_file = job.get("log_file") or os.path.join(log_dir, f"{job['id']}.log")
 
-    # 1. Output exists → completed
-    if job.get("expected_output") and output_exists(job["expected_output"], cwd):
-        return "completed", None
-
-    # 2. OOM detected → failed_oom
+    # 1. OOM first: a crashed run may have left partial output behind
     if detect_oom_in_log(log_file):
         return "failed_oom", "CUDA OOM detected"
 
-    # 3. Screen alive + python alive → still running
-    if screen_name and screen_exists(screen_name):
+    exit_code = read_exit_marker(job.get("exit_file"))
+    process_gone = not (screen_name and screen_exists(screen_name))
+
+    if exit_code is None and not process_gone:
+        # Still running: screen alive, no marker yet
         if job.get("pid"):
             _, rc = run(f"kill -0 {job['pid']} 2>/dev/null")
             if rc == 0:
                 return "running", None
-            # Python died but screen alive → stale
-        else:
-            # No pid known; trust screen for now
+            # PID dead but screen alive: give the marker one poll to appear
             return "running", None
+        return "running", None
 
-    # 4. Screen gone, no output → failed_other
-    if not screen_name or not screen_exists(screen_name):
-        return "failed_other", "Screen exited without expected output"
+    # Process ended (or marker written). Verify outputs.
+    output_ok = True
+    if job.get("expected_output"):
+        output_ok = output_exists(job["expected_output"], cwd,
+                                  min_mtime=job.get("started_ts"))
 
-    # Default: running
-    return "running", None
+    if exit_code is not None and exit_code != 0:
+        return "failed_other", f"command exited with code {exit_code}"
+    if exit_code is None:
+        # Screen gone but no marker: the inner bash writes the marker
+        # unconditionally, so its absence means an abnormal death
+        # (hard kill, host cleanup) — never a success.
+        return "failed_other", "screen exited without exit marker"
+    if not output_ok:
+        return "failed_other", "process ended without expected output"
+    return "completed", None
 
 
 def pending_jobs_in_active_phases(state, manifest):
     active_phases = []
     for phase in manifest.get("phases", []):
         phase_name = phase.get("name")
-        if phase_ready(phase_name, state) and not phase_complete(phase_name, state):
+        if phase_ready(phase_name, state) and not phase_all_terminal(phase_name, state):
             active_phases.append(phase_name)
     return [
         j for j in state["jobs"]
@@ -372,19 +486,31 @@ def step(manifest, state, state_file, log_dir):
         job["started"] = now()
         job["error"] = None
 
-    # 4. Update phase status
+    # 4. Update phase status (A4: success and terminal are distinct)
     for phase in state["phases"]:
-        if phase_complete(phase["name"], state):
+        name = phase["name"]
+        if not any(j.get("phase") == name for j in state["jobs"]):
+            continue
+        if phase_all_success(name, state):
             phase["status"] = "completed"
+        elif phase_all_terminal(name, state):
+            phase["status"] = "failed"
         elif any(j["status"] == "running"
-                 for j in state["jobs"] if j.get("phase") == phase["name"]):
+                 for j in state["jobs"] if j.get("phase") == name):
             phase["status"] = "running"
 
     save_state(state, state_file)
 
 
 def all_done(state):
-    return all(j["status"] in ("completed", "stuck") for j in state["jobs"])
+    """True when every job reached a TERMINAL state (A4).
+
+    failed_other is terminal: a job whose screen died without output
+    must let the queue finish instead of trapping the scheduler in a
+    `while not all_done` loop. Downstream protection comes from
+    phase_ready requiring SUCCESS (completed), not from all_done.
+    """
+    return all(j["status"] in TERMINAL_STATES for j in state["jobs"])
 
 
 def main():
