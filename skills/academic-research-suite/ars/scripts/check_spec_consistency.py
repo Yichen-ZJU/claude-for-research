@@ -30,12 +30,21 @@ def codex_manifest() -> dict[str, object]:
 
 
 def is_codex_distribution() -> bool:
-    return codex_manifest().get("generated_for") == "codex"
+    """True when this is the packaged router distribution.
+
+    Packaging layout (root SKILL.md router + vendored ars/*/WORKFLOW.md
+    entries + manifest.json) is shared by ALL engine ports. The
+    manifest's `generated_for` field names the host engine, not the
+    layout, so it must NOT gate entry-path mapping, exclusions, or
+    version checks — otherwise a claude-native port fails this
+    self-check despite having the identical layout.
+    """
+    return (ROOT.parent / "manifest.json").is_file()
 
 
 def codex_excluded_patterns() -> tuple[str, ...]:
     manifest = codex_manifest()
-    if manifest.get("generated_for") != "codex":
+    if not is_codex_distribution():
         return ()
     patterns = manifest.get("excluded_patterns", [])
     if not isinstance(patterns, list):
