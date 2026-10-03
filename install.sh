@@ -2,7 +2,7 @@
 # claude-for-research 一键部署脚本
 # 用法: ./install.sh [--with-mcp] [-h|--help]
 #
-# 设计约束（GPT 审查 C1-C5）：
+# 设计约束（C1-C5 工程约束）：
 #   C1 任何写入前完成参数解析；--help/非法参数 -> usage 退出
 #   C2 备份目录唯一（时间戳+PID），已存在即拒绝覆盖
 #   C3 先 staging 再原子替换；失败自动从备份恢复
