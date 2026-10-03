@@ -81,7 +81,9 @@ Verify the sync actually transferred the tree (rsync exits 0 even when
 nothing matched — an empty remote dir looks identical to a broken
 include list without this check):
 ```bash
-ssh <server> "cd <remote_dst> && find . -name '*.py' | head -5 && echo PY_COUNT=$(find . -name '*.py' | wc -l)"
+ssh <server> 'cd <remote_dst> && find . -name "*.py" | head -5 && echo "PY_COUNT=$(find . -name "*.py" | wc -l)"'
+# 远端命令整体用单引号：内层 $() 在远端 shell 求值，PY_COUNT 反映远端真实计数。
+# 若必须用双引号包远端命令，把内层写成 \$(find ...) 转义，防本地预求值。
 # 与本地对照： find <local_src> -name '*.py' | wc -l —— 数量级应一致
 ```
 
