@@ -8,7 +8,11 @@ description: >-
   Problem/Setting and aligns contributions with challenges. Use when
   the user asks to 'draft the Introduction', 'outline the
   Introduction', 'intro logic needs clarifying', 'help structure the
-  paper story', or before writing any Introduction prose.
+  paper story', or before writing any Introduction prose. Also use in
+  Review mode: to audit an existing Abstract + Introduction against a
+  reviewer-style checklist (reading flow, sentence cohesion, logical
+  progression, venue conventions) when the user asks to 'review the
+  Introduction', 'check the intro', or 'audit the abstract and intro'.
 license: CC-BY-4.0
 ---
 
@@ -43,6 +47,10 @@ to deliver it.
   them is not.
 - `idea-evaluator` has returned Strong Accept and the next step is
   drafting.
+- Review mode: the user has a draft (abstract + Introduction, ideally
+  the full paper) and asks to review, check, or audit it — "检查
+  intro", "intro 有什么问题", "按审稿人标准看 intro/abstract",
+  "审稿人会怎么读这篇的 intro".
 
 ## When NOT to use this skill
 
@@ -50,9 +58,10 @@ to deliver it.
 - The paper is a benchmark paper. Use `benchmark-paper-template` (separate plugin)
   instead; the flowchart differs.
 - The user wants to polish Introduction prose that is already
-  structured. Use `pre-submission-reviewer` instead.
-- The user wants to evaluate whether the Introduction is ready for
-  submission. Use `pre-submission-reviewer`.
+  structured, or evaluate whole-paper submission readiness. Use
+  `pre-submission-reviewer` instead. (Review mode here audits
+  story-level structure and logic of the abstract + Introduction; it
+  does not replace a submission checklist.)
 
 ## Core procedure
 
@@ -180,6 +189,119 @@ Before returning the outline:
 
 If any check fails, mark the paragraph as "needs user attention"
 and do not claim the outline is complete.
+
+## Review mode: auditing an existing Abstract + Introduction
+
+A reviewer does not read the Introduction in a vacuum. They read it
+with the whole paper (or at least Method + Experiments) in mind, and
+they decide within two pages whether the paper is coherent, motivated,
+and conventionally packaged. This mode simulates that read. It is a
+**diagnosis pass**: every finding must quote the offending text, and
+the final output must include concrete replacement sentences, not just
+labels.
+
+### R1. Build an independent summary of the paper FIRST
+
+Before opening the Abstract or Introduction, read whatever else is
+available (Method, Experiments, figures; if only abstract + intro
+exist, state this and lower confidence). Then write a 5-sentence
+summary:
+
+1. The problem the paper solves.
+2. The key insight / essence.
+3. The method in one sentence.
+4. The strongest evidence.
+5. The single claim the paper wants the reader to remember.
+
+This summary is the ground truth. The abstract and Introduction are
+audited **against it**, not against themselves. Two global checks run
+throughout: **overclaim** (abstract/intro asserts something the paper
+does not deliver) and **underclaim** (the paper's real strength never
+reaches the abstract/intro).
+
+### R2. Read the Abstract, then the Introduction, summary in hand
+
+Note first impressions without editing: where did you stall, where did
+you reread a sentence, where did you lose the thread. These map
+directly to findings below.
+
+### R3. Four-dimension audit
+
+**Dimension A — Reading flow （段落级阅读流）**
+
+- Does each paragraph open by hooking into the previous paragraph's
+  endpoint, or does it jump to a fresh topic?
+- Are the six turns (background -> limitations -> essence/goal ->
+  challenges -> solution -> contributions) each marked by an explicit
+  linguistic signal (However, To this end, Building on this, Despite
+  these advances, ...)?
+- Skeleton test: read only the first sentence of each paragraph, in
+  order. Does that skeleton alone tell the story? If not, the flow is
+  broken even if each paragraph is locally fine.
+
+**Dimension B — Sentence-to-sentence cohesion （环环相扣）**
+
+- For every adjacent sentence pair, classify the link: elaboration,
+  contrast, cause, example, transition, or NONE.
+- Flag every NONE link: is a connective or an explicit referent
+  missing? Quote the pair and name the missing link type.
+- Reference check: every "this", "it", "these methods", "such
+  approaches" has an unambiguous antecedent one or two sentences back.
+
+**Dimension C — Logical progression and redundancy （递进与重复）**
+
+- Map the Introduction onto the 6-paragraph flowchart (see
+  references/flowchart.md). Does the narrative escalate (each
+  paragraph raises the stakes or narrows the focus), or does it
+  circle?
+- Flag repetition: a claim introduced in an early paragraph and
+  restated nearly verbatim two paragraphs later without adding
+  information.
+- Flag leaps: a challenge, contribution, or claim that appears with
+  no setup in an earlier paragraph.
+- Benchmark papers: audit against the six-part Introduction logic
+  chain of `benchmark-paper-template` (research gap -> construction
+  -> evaluation -> findings) instead of the technique flowchart.
+- If the paper's skeleton itself is incomplete, run the thinking-
+  template table of `tech-paper-template` to name what is missing.
+
+**Dimension D — Venue convention （会议套路， ICLR default）**
+
+1. Contributions: bulleted/numbered? Three or four items? Each maps
+   to a section? Each specific (not "extensive experiments")?
+2. Paragraph 1: research problem + background + why it matters — all
+   three present in the first paragraph?
+3. Paragraph 2 (or the limitations block): motivation explained, not
+   just listed — does the reader learn *why* prior work fails, with a
+   concrete failure mode?
+4. Method overview: organized — is the challenge-to-module mapping
+   visible? After reading, can the reviewer restate the method in one
+   sentence?
+5. Abstract: context -> gap -> insight -> method -> result; no
+   citations; within the page limit; makes exactly the same claims as
+   the contribution bullets?
+
+### R4. Verdict and rewrites
+
+- Verdict table: dimensions A-D, each pass / weak / fail with severity
+  (CRITICAL / MAJOR / MINOR). Every fail and weak must quote the
+  offending text.
+- For the top three issues, provide concrete replacement sentences
+  (rewritten connective, reordered paragraph, re-bulleted
+  contributions), not just advice.
+- If the structure is sound but the prose is weak, say so explicitly
+  and hand off: `pre-submission-reviewer` for submission readiness,
+  `style-calibration` for voice matching.
+
+### Review-mode integrity gate
+
+1. **[inspection]** The R1 summary exists and was written before the
+   audit findings.
+2. **[inspection]** Every CRITICAL/MAJOR finding quotes the draft.
+3. **[inspection]** Dimension D checklist items were each explicitly
+   answered pass/weak/fail, not skipped.
+4. **[inspection]** The verdict table includes at least the verdict,
+   the evidence, and one concrete rewrite for each failed dimension.
 
 ## Output format
 
