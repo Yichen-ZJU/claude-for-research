@@ -96,4 +96,4 @@ claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 
 ## 许可证 / License
 
-本仓库原创内容以 **MIT** 发布（见 [LICENSE](LICENSE)）；第三方组件以各自许可证发布，逐组件说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。 / Original content is released under **MIT** (see [LICENSE](LICENSE)); third-party components keep their own licenses — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+本仓库原创内容以 **MIT** 发布（见 [LICENSE](LICENSE)）。第三方组件以各自许可证发布：`academic-research-suite`（vendored ARS，上游 © Cheng-I Wu）为 **CC BY-NC 4.0（仅限非商业使用）**，许可全文见其目录内 LICENSE；其余来源见上方致谢。 / Original content is released under **MIT** (see [LICENSE](LICENSE)). Third-party components keep their own licenses: `academic-research-suite` (vendored ARS, upstream © Cheng-I Wu) is **CC BY-NC 4.0 (non-commercial only)** — full license text lives in its own directory; other sources are acknowledged above.
