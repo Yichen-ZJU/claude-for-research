@@ -5,7 +5,7 @@
   "sharedCount": 115,
   "repositories": {
     "claude-for-research": {
-      "commit": "940e392f5c7fdd7b3cd03274e2b19b960a8d1595",
+      "commit": "211ef2e98ddd1f73ece32427ca27b971df0f390a",
       "count": 115,
       "skills": [
         "a-evolve",
@@ -126,7 +126,7 @@
       ]
     },
     "codex-for-research": {
-      "commit": "d76812a90c409ac14e4ab481bdbd47b31fc8b586",
+      "commit": "81ca0acbd6ebd7266b8d743a2b5e71b2a7d55e8d",
       "count": 115,
       "skills": [
         "a-evolve",
