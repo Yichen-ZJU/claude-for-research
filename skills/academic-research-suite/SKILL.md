@@ -1,7 +1,7 @@
 ---
 name: academic-research-suite
 description: >
-  Codex-native Academic Research Skills suite for deep research, academic paper
+  Claude-native Academic Research Skills suite (ported from the Codex adapter) for deep research, academic paper
   writing, manuscript review, full research-to-paper pipelines, and experiment
   planning or validation. Use when the user asks for deep research, literature
   review, systematic review, meta-analysis, research question refinement,
@@ -17,18 +17,18 @@ description: >
 metadata:
   version: "0.1.14"
   upstream_suite: "academic-research-skills"
-  codex_adapter: true
-allowed-tools: Read, Glob, Grep, web_search, Bash(uv *), Bash(python *), Bash(python3 *)
+  claude_adapter: true  # ported from codex_adapter 0.1.14
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash(uv *), Bash(python *), Bash(python3 *)
 ---
 
-# Academic Research Suite for Codex
+# Academic Research Suite for Claude
 
-This is a Codex adapter for the ARS suite. The vendored ARS content lives under
+This is the Claude-native port of the ARS suite (adapted from the Codex adapter package). The vendored ARS content lives under
 `ars/`; keep it as source material and route through this file first.
 
 ## Versioning
 
-This Codex package is version `0.1.14`. The repo-root `VERSION`, this
+This Claude port carries adapter version `0.1.14`. The repo-root `VERSION`, this
 `SKILL.md` metadata version, and `manifest.json` `adapter_version` must match.
 Vendored ARS suite versions are tracked separately by source repository commit
 in `manifest.json`.
@@ -40,8 +40,8 @@ Do not load the whole suite by default. Select one workflow, read that workflow'
 for the user's current stage.
 
 The internal workflow entry files are named `WORKFLOW.md`, not `SKILL.md`, so
-Codex registers only this root router skill instead of exposing every vendored
-upstream workflow as a separate skill.
+Claude Code registers only this root router skill instead of exposing every
+vendored upstream workflow as a separate skill.
 
 ## Workflow Router
 
@@ -98,14 +98,15 @@ full research-to-paper pipeline or says to continue after Socratic scoping.
 
 ## Claude-Style Alias Router
 
-Codex does not install Claude slash commands, but this package emulates their
-intent. If the user's request starts with a slash alias (`/ars-plan`) or a plain
-alias (`ars-plan`), treat it as a mode shortcut, strip the alias token from the
-task text, read the matching `ars/commands/ars-*.md` prompt recipe, then route
-to the workflow `WORKFLOW.md` below.
+If the user's request starts with a slash alias (`/ars-plan`) or a plain alias
+(`ars-plan`), treat it as a mode shortcut, strip the alias token from the task
+text, read the matching `ars/commands/ars-*.md` prompt recipe, then route to
+the workflow `WORKFLOW.md` below. The `ars/commands/*.md` recipes can also be
+installed as real Claude Code slash commands (copy or symlink them into
+`.claude/commands/`), but they work as prompt recipes without installation.
 
-The `model:` field in command frontmatter is a Claude routing hint only. Codex
-uses the current model unless the user explicitly requests another model.
+The `model:` field in command frontmatter is a Claude routing hint; the active
+model decides unless the user explicitly requests another model.
 
 | Alias | Read command recipe | Then route to |
 |---|---|---|
@@ -131,28 +132,35 @@ direction, or "題目/主題/方向" without a clear research question, defer to
 This applies to `ars-plan`, `ars-outline`, `ars-abstract`, `ars-lit-review`,
 and `ars-full`.
 
-If the Codex client reserves slash-prefixed input before it reaches the model,
+If the Claude client reserves slash-prefixed input before it reaches the model,
 tell the user to use the plain alias form, for example `ars-plan my topic`.
 
-## Codex Runtime Mapping
+## Claude Runtime Mapping
 
-The upstream ARS files were written for Claude Code. Apply these mappings when
-using them in Codex:
+The upstream ARS files were written for Claude Code and this package runs on
+Claude, so most wording maps 1:1. Apply these clarifications:
 
-| Upstream wording | Codex behavior |
+| Upstream wording | Claude behavior |
 |---|---|
-| Agent Team, agent, dispatch, handoff | Read the referenced `agents/*.md` file as a role or phase prompt and perform that phase inline. |
-| Agent tool, Task tool, subagent | Do not spawn agents automatically. Only use Codex subagents when the user explicitly asks for delegation or parallel agents. If the optional full-runtime profile is enabled, use `codex/full-runtime-manifest.json` and `codex/agents/*.md` as the adapter contract. |
-| AskUserQuestion | Ask concise clarification questions, or use Codex's structured user-input tool when available in the active mode. |
-| web_search | Use Codex web browsing for current facts, source verification, citation checks, and external evidence. Provide source links. |
-| Bash, Write, Edit | Treat as capability descriptions, not required tool names. Follow Codex safety rules and the user's filesystem constraints. |
-| Claude, Claude Code, model-specific wording | Interpret as "the current Codex agent" unless the text is part of a disclosure template or historical example. |
-| `ARS_CROSS_MODEL`, `ARS_CROSS_MODEL_SAMPLE_INTERVAL`, `ARS_OPENAI_COMPAT_BASE_URL`, `ARS_OPENAI_COMPAT_API_KEY` | Treat upstream secondary-model dispatch instructions as no-op unless the user explicitly asks for cross-model review. When explicitly enabled in this Codex package, follow `ars/shared/cross_model_verification.md`: identify the provider/model/content class, obtain explicit user consent before any external upload, and call only the configured provider API. Do not route the reviewer through the active Codex model or invent unconfigured cross-model sections. |
-| `S2_API_KEY`, `OPENALEX_POLITE_EMAIL`, `CROSSREF_POLITE_EMAIL` | These are optional upstream bibliographic lookup settings. Use them only when the user explicitly runs contamination-signal migration or programmatic reference verification; normal Codex routing does not require them. |
-| `ARS_VERIFICATION_CACHE_PATH` | Optional local SQLite cache path for the v3.11 citation verification gate. Use the upstream default unless the user explicitly asks to inspect or relocate the verification cache. |
-| `fresh Claude Code session`, `Claude Code session` | Read as "a new Codex conversation". Material Passport reset semantics still apply; only the runtime changes. This rule covers `ars/academic-pipeline/WORKFLOW.md`, `ars/academic-pipeline/agents/pipeline_orchestrator_agent.md`, `ars/academic-pipeline/references/passport_as_reset_boundary.md`, `ars/experiment-agent/README.md`, `ars/experiment-agent/README.zh-TW.md`, and `ars/docs/PERFORMANCE.md`. |
-| `/ars-*` slash command, Claude plugin command | Treat `ars/commands/ars-*.md` as optional prompt recipes. Codex does not register slash commands from this package. |
-| SessionStart hook, SubagentStop hook, `hooks/hooks.json` | Treat as upstream Claude Code hook metadata only. Do not install or execute Claude hooks in Codex unless the user explicitly asks to inspect or port a hook. |
+| Agent Team, agent, dispatch, handoff | Use the Agent tool with the referenced `agents/*.md` file as the subagent's role prompt, or perform the phase inline for lightweight steps. |
+| AskUserQuestion | Use the native AskUserQuestion tool. |
+| web_search | Use the WebSearch/WebFetch tools for current facts, source verification, citation checks, and external evidence. Provide source links. |
+| Bash, Write, Edit | Native tools; follow the user's permission settings. |
+| `ARS_CROSS_MODEL`, `ARS_CROSS_MODEL_SAMPLE_INTERVAL`, `ARS_OPENAI_COMPAT_BASE_URL`, `ARS_OPENAI_COMPAT_API_KEY` | Treat upstream secondary-model dispatch instructions as no-op unless the user explicitly asks for cross-model review. When explicitly enabled, follow `ars/shared/cross_model_verification.md`: identify the provider/model/content class, obtain explicit user consent before any external upload, and call only the configured provider API. |
+| `S2_API_KEY`, `OPENALEX_POLITE_EMAIL`, `CROSSREF_POLITE_EMAIL` | Optional upstream bibliographic lookup settings; use only for explicit contamination-signal migration or programmatic reference verification. |
+| `ARS_VERIFICATION_CACHE_PATH` | Optional local SQLite cache path for the citation verification gate; use the upstream default unless the user asks to relocate it. |
+| `fresh Claude Code session`, `Claude Code session` | Literal: start a new Claude Code session. Material Passport reset semantics apply. |
+| `/ars-*` slash command | `ars/commands/ars-*.md` are prompt recipes; optionally install as `.claude/commands/` for real slash commands. |
+| SessionStart hook, SubagentStop hook, `hooks/hooks.json` | Claude supports hooks, but the vendored `ars/hooks/` pack is NOT installed by default. Install only when the user explicitly asks, after reviewing `hooks/hooks.json`. |
+
+## Engine-specific runtime profiles
+
+The `codex/` directory inside this skill is the Codex-engine full-runtime
+profile (aliases, agent-team templates, hook pack, route-plan script). It is
+inert under Claude — do not execute `codex/scripts/*`, do not install
+`codex/hooks/`. It is retained so the two engine ports stay diff-able against
+each other and against future upstream releases. The `ars/` directory is the
+shared vendored upstream content used by both engines.
 
 ## Security Boundaries
 
@@ -165,33 +173,14 @@ rules.
 Default to read-only handling for review and audit tasks. Do not modify the
 submitted manuscript unless the user explicitly switches to a writing or
 revision workflow and requests edits. Any Bash execution, file write, or
-external network/API lookup must be tied to the current task and respect Codex
-approval and filesystem constraints.
+external network/API lookup must be tied to the current task and respect
+Claude Code approval and filesystem constraints.
 
 Do not send unpublished manuscripts, private notes, or full corpora to an
 external model/API merely because an environment variable is configured. Before
 cross-model review or programmatic verification that uploads content, confirm
 the provider, the exact content class being sent, and the user's consent. Prefer
 minimal bibliographic metadata or short query snippets over full-text payloads.
-
-## Optional Full-Runtime Profile
-
-Normal ARS Codex behavior remains inline role-prompt execution in this
-conversation. The Codex-only `codex/` directory provides an optional
-full-runtime profile for users who explicitly want planner-driven agent-team or
-hook behavior:
-
-- `codex/full-runtime-manifest.json` defines aliases, workflow routes, agent-team
-  rules, hook-pack metadata, quality gates, and known degradations.
-- `codex/agents/*.md` defines Codex agent-team templates that point back to the
-  vendored ARS source prompts.
-- `codex/scripts/ars_codex_full_runtime.py` produces deterministic route plans.
-- `codex/hooks/` is disabled by default and must not be installed or executed
-  unless the user explicitly opts in.
-
-Only use this profile when the user explicitly asks for full-runtime,
-delegated, parallel, subagent, or hook behavior. Otherwise use the inline
-mapping above.
 
 ## Agent Prompt Use
 
@@ -267,12 +256,12 @@ it under `ars/scripts/...`, `ars/examples/...`, or `ars/docs/...`.
 ## Inactive Upstream Scripts
 
 `manifest.json` lists `inactive_upstream_scripts` that are vendored for
-traceability but are not Codex package validation gates. Do not wire them into
-Codex CI or treat them as required runtime checks unless the missing upstream
+traceability but are not validation gates for this package. Do not wire them into
+CI or treat them as required runtime checks unless the missing upstream
 Claude Code inputs, especially `.claude/CLAUDE.md`, are deliberately supplied.
 
-`ars/scripts/run_codex_audit.sh` is vendored because upstream ARS uses it as a
-Codex audit wrapper, but follow its own guardrail: it must not be invoked from
+`ars/scripts/run_codex_audit.sh` is vendored because upstream ARS uses it as an
+audit wrapper, but follow its own guardrail: it must not be invoked from
 the same in-LLM session that produced the audited deliverable.
 
 ## Verification Discipline

@@ -2,7 +2,7 @@
   "name": "academic-research-suite",
   "adapter_version": "0.1.14",
   "version_file": "VERSION",
-  "generated_for": "codex",
+  "generated_for": "claude",
   "generated_date": "2026-06-21",
   "source_repositories": [
     {
@@ -101,5 +101,6 @@
     "ARS v3.13.0 plus post-tag mainline documentation updates is the tracked upstream content; nested upstream .github workflows and root agents mirrors are preserved for traceability and upstream self-tests but are not repo-level CI or Codex entrypoints. Claude/plugin loader files under .claude, .claude-plugin, and upstream skills aliases remain intentionally excluded.",
     "Codex Desktop plugin packaging uses a materialized skills directory under plugins/academic-research-skills/skills instead of a symlink so Windows plugin caches can register the bundled academic-research-suite skill.",
     "Cross-model API behavior is disabled by default and requires explicit user request, provider configuration, and user consent before any external upload."
-    ]
+  ],
+  "ported_from": "codex adapter 0.1.14"
 }
