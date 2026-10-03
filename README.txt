@@ -22,8 +22,8 @@ Research narrative
   promised benchmark result. ArXiv MCP is the full-text retrieval backend.
 
 Repository snapshot checked 2026-10-03
-  Claude: 115 skills at 9e4f95bdd5b151487b30294c4aa706aca29bb4ae
-  Codex: 115 skills at fe7185b2ba1eb3664f2dfb7108093397faabfa32
+  Claude: 115 skills at 0b34baea9f415b6b2b7807dc33af8cba75d38d41
+  Codex: 115 skills at efd5f98062f4f1963ab6ee2d7a3622948ce30dcb
   Shared names: 115.
   Count convention: skills/<directory>/SKILL.md; not agents or nested references.
 
