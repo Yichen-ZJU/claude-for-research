@@ -25,8 +25,8 @@ State file format (queue_state.json):
     {
       "id": "s200_N64_n50K",
       "phase": "distill",
-      "status": "running",  # pending|running|completed|failed_oom|failed_other|stuck
-                              # (failed_* may be requeued to pending by OOM retry)
+      "status": "running",  # pending|running|completed|retry_wait|failed_oom
+                              # |failed_other|stuck|blocked
       "gpu": 3,
       "screen_name": "EQ_s200_N64_n50K",
       "pid": 12345,
@@ -56,14 +56,25 @@ OOM_RE = re.compile(r"(CUDA out of memory|torch\.OutOfMemoryError)")
 DEFAULT_GPU_FREE_THRESHOLD_MIB = 500
 POLL_INTERVAL_SEC = 60
 
-# State machine (A4): distinguish TERMINAL from SUCCESS.
-# - failed_* and stuck are terminal-but-not-success: the queue can
-#   finish (all_done accepts them) yet dependent phases never unlock
-#   (phase_ready only accepts "completed").
-# - failed_oom may be requeued to "pending" by the OOM retry logic;
-#   that is the only allowed transition out of a terminal state.
-TERMINAL_STATES = ("completed", "failed_oom", "failed_other", "stuck")
+# State machine (A4/H1/H4): TERMINAL vs SUCCESS vs WAITING.
+# - TERMINAL-but-not-success (failed_other/stuck/failed_oom-exhausted/
+#   blocked): the queue can finish (all_done accepts them) yet dependent
+#   phases never unlock (phase_ready only accepts "completed").
+# - retry_wait (H1): NON-terminal. An OOM failure that still has retry
+#   attempts left parks here until oom_retry.delay elapses, then is
+#   requeued to "pending". all_done must NOT accept it, otherwise the
+#   main loop exits before the retry ever runs.
+# - blocked (H4): NON-success terminal for jobs whose upstream phase
+#   failed; they can never start. Distinguishes "ran and failed" from
+#   "never runnable", so the process exit code and the operator can
+#   tell the difference.
+TERMINAL_STATES = ("completed", "failed_oom", "failed_other", "stuck", "blocked")
 SUCCESS_STATES = ("completed",)
+WAITING_STATES = ("retry_wait",)
+
+# Set by step() each iteration so job_status_check can apply the OOM
+# retry budget without a signature change.
+MAX_OOM_ATTEMPTS = [3]
 
 
 def resolve_conda_hook(manifest_hook=None):
@@ -203,10 +214,22 @@ def output_exists(path_pattern, cwd, min_mtime=None):
 
 
 def load_state(state_file, manifest):
-    """Load state from disk or initialize from manifest."""
+    """Load state from disk or initialize from manifest.
+
+    H1 migration: state files written by older versions mark a
+    not-yet-exhausted OOM failure as "failed_oom" (terminal), which
+    would end the queue before the retry runs. Reclassify those jobs
+    to the non-terminal "retry_wait" so the retry schedule resumes.
+    """
     if Path(state_file).exists():
         with open(state_file) as f:
-            return json.load(f)
+            state = json.load(f)
+        max_attempts = manifest.get("oom_retry", {}).get("max_attempts", 3)
+        for job in state.get("jobs", []):
+            if job.get("status") == "failed_oom" and job.get("attempts", 0) < max_attempts:
+                job["status"] = "retry_wait"
+                job["error"] = (job.get("error") or "CUDA OOM detected") + " (migrated to retry_wait)"
+        return state
     # Initialize from manifest
     state = {
         "meta": {
@@ -307,36 +330,47 @@ def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook):
     attempt = job["attempts"] + 1
     log_file = os.path.join(log_dir, f"{job['id']}.a{attempt}.log")
     exit_file = log_file + ".exit"
-    # Remove stale marker from a previous attempt, if any
-    try:
-        os.remove(exit_file)
-    except OSError:
-        pass
+    exit_tmp = exit_file + ".tmp"
+    # Remove stale markers from a previous attempt, if any
+    for f in (exit_file, exit_tmp):
+        try:
+            os.remove(f)
+        except OSError:
+            pass
+    # H2: stamp BEFORE the child starts, so completion checks
+    # (mtime >= started_ts) accept outputs from fast (<2s) tasks.
+    job["started_ts"] = time.time()
     cmd = job["cmd"]
     # Substitute GPU placeholder if present
     cmd_with_gpu = cmd.replace("${GPU}", str(gpu))
-    inner = (
-        f'{{ CUDA_VISIBLE_DEVICES={gpu} {cmd_with_gpu}; '
-        f'ec=$?; echo $ec > {shlex.quote(exit_file)}; exit $ec; }} '
+    # H3: the user command runs in its OWN subshell, so a user-level
+    # `exit 0` cannot skip the marker write; the outer shell always
+    # captures the real exit code. The marker is published via
+    # tmp-file + rename (atomic on same filesystem), and is written
+    # even when cd/conda/activate fails (captured as nonzero).
+    full = (
+        f'( cd {shlex.quote(cwd)} && {conda_hook} && '
+        f'conda activate {conda_env} && '
+        f'CUDA_VISIBLE_DEVICES={gpu} {cmd_with_gpu} ); '
+        f'ec=$?; echo $ec > {shlex.quote(exit_tmp)}; '
+        f'mv -f {shlex.quote(exit_tmp)} {shlex.quote(exit_file)}; '
+        f'exit $ec'
+    )
+    # tee lives OUTSIDE bash -c so $ec inside is the command's real code
+    screen_cmd = (
+        f'screen -dmS {screen_name} bash -c {shlex.quote(full)} '
         f'2>&1 | tee {shlex.quote(log_file)}'
     )
-    full = (
-        f'cd {shlex.quote(cwd)} && '
-        f'{conda_hook} && '
-        f'conda activate {conda_env} && '
-        f'{inner}'
-    )
-    screen_cmd = f'screen -dmS {screen_name} bash -c {shlex.quote(full)}'
     run(screen_cmd)
+    # Brief pause so `ps` sees the child for the pid probe; the pid is
+    # informational only (status comes from the marker/screen).
     time.sleep(2)
-    # Get pid (find python process for this CUDA_VISIBLE_DEVICES)
     pid_out, _ = run(
         f"ps -ef | grep 'CUDA_VISIBLE_DEVICES={gpu} ' | grep -v grep | "
         f"grep python | awk '{{print $2}}' | head -1")
     pid = pid_out.strip()
     job["log_file"] = log_file
     job["exit_file"] = exit_file
-    job["started_ts"] = time.time()
     return screen_name, (int(pid) if pid.isdigit() else None)
 
 
@@ -367,9 +401,14 @@ def job_status_check(job, log_dir, cwd):
     screen_name = job["screen_name"]
     log_file = job.get("log_file") or os.path.join(log_dir, f"{job['id']}.log")
 
-    # 1. OOM first: a crashed run may have left partial output behind
+    # 1. OOM first: a crashed run may have left partial output behind.
+    # H1: with retry attempts remaining this is NOT terminal — park in
+    # retry_wait (the step loop requeues it after oom_retry.delay).
     if detect_oom_in_log(log_file):
-        return "failed_oom", "CUDA OOM detected"
+        max_attempts = MAX_OOM_ATTEMPTS[0]  # set by step()
+        if job.get("attempts", 0) < max_attempts:
+            return "retry_wait", "CUDA OOM detected (retry scheduled)"
+        return "failed_oom", "CUDA OOM detected, retry attempts exhausted"
 
     exit_code = read_exit_marker(job.get("exit_file"))
     process_gone = not (screen_name and screen_exists(screen_name))
@@ -437,6 +476,12 @@ def step(manifest, state, state_file, log_dir):
             # Clean up screen
             if job["screen_name"]:
                 kill_screen(job["screen_name"])
+        elif new_status == "retry_wait":
+            job["status"] = "retry_wait"
+            job["error"] = err
+            job["completed"] = now()
+            if job["screen_name"]:
+                kill_screen(job["screen_name"])
         elif new_status == "failed_oom":
             job["status"] = "failed_oom"
             job["error"] = err
@@ -450,15 +495,16 @@ def step(manifest, state, state_file, log_dir):
             if job["screen_name"]:
                 kill_screen(job["screen_name"])
 
-    # 2. Retry OOM jobs that have waited long enough
-    current_time = time.time()
+    # 2. Requeue OOM retries whose delay has elapsed (H1: retry_wait is
+    # non-terminal, so all_done cannot cut the queue short mid-retry).
+    MAX_OOM_ATTEMPTS[0] = max_oom_attempts
     for job in state["jobs"]:
-        if job["status"] != "failed_oom":
+        if job["status"] != "retry_wait":
             continue
         if job["attempts"] >= max_oom_attempts:
-            job["status"] = "stuck"
+            job["status"] = "failed_oom"
+            job["error"] = (job.get("error") or "CUDA OOM") + ", retry attempts exhausted"
             continue
-        # Wait oom_delay after failure before retry
         if job["completed"]:
             last = datetime.fromisoformat(job["completed"].rstrip("Z"))
             elapsed = (datetime.utcnow() - last).total_seconds()
@@ -486,7 +532,36 @@ def step(manifest, state, state_file, log_dir):
         job["started"] = now()
         job["error"] = None
 
-    # 4. Update phase status (A4: success and terminal are distinct)
+    # 4. Block dependents of failed phases (H4): a job whose upstream
+    # phase can never succeed must not stay pending forever — mark it
+    # blocked (terminal, non-success) so all_done can finish and the
+    # operator sees what never ran. Iterated to a fixpoint for chains.
+    phase_by_name = {p["name"]: p for p in state["phases"]}
+    deps_of = {p["name"]: p.get("depends_on", []) for p in state["phases"]}
+    changed = True
+    while changed:
+        changed = False
+        failed_phases = {p["name"] for p in state["phases"] if p["status"] == "failed"}
+        for job in state["jobs"]:
+            if job["status"] != "pending":
+                continue
+            deps = deps_of.get(job.get("phase"), [])
+            if any(phase_by_name.get(d, {}).get("status") == "failed" for d in deps):
+                job["status"] = "blocked"
+                job["error"] = "upstream phase failed; job cannot start"
+                job["completed"] = now()
+                changed = True
+        for phase in state["phases"]:
+            name = phase["name"]
+            if not any(j.get("phase") == name for j in state["jobs"]):
+                continue
+            if phase["status"] == "failed":
+                continue
+            if any(phase_by_name.get(d, {}).get("status") == "failed" for d in deps_of.get(name, [])):
+                phase["status"] = "failed"
+                changed = True
+
+    # 5. Update phase status (A4: success and terminal are distinct)
     for phase in state["phases"]:
         name = phase["name"]
         if not any(j.get("phase") == name for j in state["jobs"]):
@@ -503,14 +578,22 @@ def step(manifest, state, state_file, log_dir):
 
 
 def all_done(state):
-    """True when every job reached a TERMINAL state (A4).
+    """True when every job reached a TERMINAL state (A4/H1).
 
-    failed_other is terminal: a job whose screen died without output
-    must let the queue finish instead of trapping the scheduler in a
-    `while not all_done` loop. Downstream protection comes from
+    retry_wait is deliberately NOT terminal: an OOM job waiting to be
+    requeued must keep the main loop alive, otherwise single-job queues
+    would exit after attempt 1. Downstream protection comes from
     phase_ready requiring SUCCESS (completed), not from all_done.
     """
     return all(j["status"] in TERMINAL_STATES for j in state["jobs"])
+
+
+FAILURE_STATES = ("failed_oom", "failed_other", "stuck", "blocked")
+
+
+def has_failures(state):
+    """H4: any job that ran-and-failed or was blocked by a failure."""
+    return any(j["status"] in FAILURE_STATES for j in state["jobs"])
 
 
 def main():
@@ -545,6 +628,10 @@ def main():
             sys.stdout.flush()
         time.sleep(args.poll)
 
+    if has_failures(state):
+        failed = [j["id"] for j in state["jobs"] if j["status"] in FAILURE_STATES]
+        print(f"[{now()}] Queue finished WITH FAILURES: {', '.join(failed)}")
+        sys.exit(1)
     print(f"[{now()}] All jobs done")
 
 
