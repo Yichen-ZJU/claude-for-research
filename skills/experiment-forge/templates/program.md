@@ -38,37 +38,51 @@ Each experiment runs: `<RUN_COMMAND>`, with a **fixed wall-clock budget of <BUDG
 The run prints a summary containing `<METRIC_NAME>: <value>`. Extract it with:
 
 ```bash
-grep "^<METRIC_NAME>:" run.log
+grep "^<METRIC_NAME>:" run-<N>.log
 ```
+
+(N = iteration number; every iteration gets its own `run-<N>.log` —
+logs are never overwritten, so results.tsv can be reconciled against
+logs by iteration number.)
 
 ## Logging results
 
 Log every experiment to `results.tsv` (TAB-separated, NOT commas — commas break in descriptions):
 
 ```
-commit	<METRIC_NAME>	memory_gb	status	description
+iteration	timestamp	commit	metric	delta	guard	status	move	description
 ```
 
-1. git commit hash (short, 7 chars)
-2. metric achieved — use 0.000000 for crashes
-3. peak memory in GB (0.0 for crashes)
-4. status: `keep`, `discard`, or `crash`
-5. short description of what this experiment tried
+1. iteration number (baseline = 0)
+2. timestamp (ISO8601 UTC)
+3. git commit hash (short, 7 chars)
+4. metric achieved — use 0.000000 for crashes
+5. delta vs previous keep (empty for baseline)
+6. guard: `pass` / `fail` / `na`
+7. status: `keep`, `discard`, `crash`, `no-op`, `blocked`
+8. move: `follow` / `reverse` / `switch` / `escalate` / `simplify` / `baseline`
+9. short description of what this experiment tried
+
+The full schema and loop rules live in one place: see the experiment
+loop contract (`experiment-forge/references/contract.md`). If this
+template ever disagrees with the contract, the contract wins.
 
 ## The experiment loop
 
-LOOP FOREVER:
+LOOP up to <MAX_ITERATIONS (default 50)> iterations and within <TIMEOUT, e.g. 12h>:
 
 1. Check git state (current branch/commit).
 2. Modify `<OPEN_FILE>` with one experimental idea.
 3. git commit.
-4. Run: `<RUN_COMMAND> > run.log 2>&1` (redirect everything — do NOT use tee or flood your context).
-5. Read results: `grep "^<METRIC_NAME>:\|^<RESOURCE_METRIC>:" run.log`.
-6. If grep is empty, the run crashed: `tail -n 50 run.log` for the stack trace. Easy fix (typo, missing import) → fix and re-run. Fundamentally broken idea → log `crash`, move on.
-7. Record in results.tsv (do NOT commit results.tsv — leave it untracked).
-8. Metric improved → keep the commit, the branch advances.
-9. Metric equal/worse → `git revert HEAD --no-edit` (NOT reset — failed experiments stay in history so future iterations can learn what doesn't work).
+4. Run: `<RUN_COMMAND> > run-<N>.log 2>&1` (redirect everything — do NOT use tee or flood your context).
+5. Read results: `grep "^<METRIC_NAME>:\|^<RESOURCE_METRIC>:" run-<N>.log`.
+6. If grep is empty, the run crashed: `tail -n 50 run-<N>.log` for the stack trace. Easy fix (typo, missing import) → fix and re-run. Runtime error → up to 3 automatic fix attempts. Still broken → log `crash`, `git revert HEAD --no-edit` (crashes always end in a revert), move on.
+7. **Guard** (if `<GUARD_COMMAND>` configured): run it every iteration; on failure revert regardless of metric and record `guard-fail`.
+8. **min_delta** (if configured): improvements smaller than `<MIN_DELTA>` trigger a confirmation run (re-run 1–2×, take the median) before deciding.
+9. Record in results.tsv (do NOT commit results.tsv — leave it untracked).
+10. Metric improved → keep the commit, the branch advances.
+11. Metric equal/worse → `git revert HEAD --no-edit` (NOT reset — failed experiments stay in history so future iterations can learn what doesn't work).
 
 **Timeout**: if a run exceeds <KILL_THRESHOLD, e.g. 2× budget>, kill it and treat as failure (discard and revert).
 
-**NEVER STOP**: once the loop begins, do NOT pause to ask the human whether to continue. The human may be asleep and expects you to work *indefinitely* until manually interrupted. Out of ideas? Think harder — read referenced papers, re-read the in-scope files for new angles, combine previous near-misses, try more radical changes. The loop runs until the human interrupts, period.
+**NEVER STOP** means: do not pause to ask the human whether to continue. It does NOT override the iteration/time bounds above. Out of ideas? Think harder — read referenced papers, re-read the in-scope files for new angles, combine previous near-misses, try more radical changes.

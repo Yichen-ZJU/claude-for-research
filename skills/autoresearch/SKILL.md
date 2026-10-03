@@ -10,7 +10,9 @@ argument-hint: <idea>
 
 分工：本 skill 负责**运行**循环。任务还没有可跑的任务包（锁定评估 + 开放文件 + program.md）时，先用 `experiment-forge` 锻造。
 
-Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `results.tsv`.
+Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `results.tsv`, `run-<N>.log`.
+
+**契约单一来源**：results.tsv 表头、循环边界、crash/revert、Guard、min_delta、日志命名的权威定义在 `experiment-forge/references/contract.md`。本文件与契约冲突时以契约为准。
 
 ## 两种运行模式
 
@@ -25,7 +27,12 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 ## Step 0: 前置检查
 
 - 在 git 仓库内运行；若 `git config user.email` 为空，`git commit` 会失败 —— 先补 repo-local 身份（`git config user.name/email`，询问用户或用已有仓库的惯用身份），再进循环。
-- 工作树不干净 / detached HEAD → 提示用户后再继续（无人值守模式：开专支即可，不阻塞）。
+- 工作树不干净 / detached HEAD → **不再"开专支即可"**（旧规则会让实验 revert 吞掉用户未提交修改）：
+  1. 记录基线 SHA：`git rev-parse HEAD`。
+  2. 把用户未提交改动固化为独立 commit：`chore: wip snapshot before autoresearch (<tag>)`。实验 revert 链从此只碰 `experiment:` commit，用户工作永远在链外。
+  3. 内容级快照：对 scope 内文件做 `sha256sum` 清单，**作为 wip snapshot commit 的一部分提交**（如 `.autoresearch-baseline.sha256`）。清单绝不能留到实验 commit 里——revert 实验 commit 会把其中新增的文件一并删除。收尾/回滚后用 `git show <snapshot-sha>:.autoresearch-baseline.sha256` 与当前文件哈希对比验证，不只看分支名。
+  4. detached HEAD → 先建工作分支再进循环。
+  无人值守模式同样执行，不跳过。
 
 ## Step 1: Gather
 
@@ -86,10 +93,10 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 
 ### 4.4 Run（防上下文爆炸）
 ```bash
-<benchmark 命令> > run.log 2>&1     # 禁止 tee / 直接输出
-grep "^<metric_name>:" run.log      # 只提取指标行
+<benchmark 命令> > run-<N>.log 2>&1   # 每迭代独立日志，禁止覆盖 / tee / 直接输出
+grep "^<metric_name>:" run-<N>.log    # 只提取指标行
 ```
-grep 为空 = 崩溃，`tail -n 50 run.log` 看栈。
+grep 为空 = 崩溃，`tail -n 50 run-<N>.log` 看栈。results.tsv 的 iteration 列与日志文件号一一对应，可对账。
 
 ### 4.5 Verify（噪声防护）
 - 改进幅度 < min_delta → **确认跑**：重跑 1-2 次取中位数再判定
