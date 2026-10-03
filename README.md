@@ -90,20 +90,10 @@ claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 
 <sub>感谢开源仓库 / Thanks to [autoresearch](https://github.com/karpathy/autoresearch), [Feynman](https://github.com/Companion-Inc/feynman), and [AI Research Skills](https://github.com/Orchestra-Research/AI-Research-SKILLs). 各组件许可见原始文件与仓库 / Component licenses remain in their source files and repositories.</sub>
 
-## 安装足迹 / Install Footprint
+## 安装说明 / Install Notes
 
-运行 `./install.sh` 会改动： / Running `./install.sh` changes:
-
-- **替换**全局 `~/.claude/CLAUDE.md`（旧文件移入 `~/.claude/backups/<时间戳>-<PID>/`） / **replaces** the global `~/.claude/CLAUDE.md` (previous file moves to `~/.claude/backups/<timestamp>-<PID>/`)
-- **写入** `~/.claude/skills/`（同名技能覆盖，原件先备份；自有技能不受影响） / **writes** `~/.claude/skills/` (same-name skills are replaced with the originals backed up; your own skills are untouched)
-- **写入** `~/.claude/agents/`（researcher / verifier / reviewer / writer） / **writes** `~/.claude/agents/` (researcher / verifier / reviewer / writer)
-- **注册 MCP**（仅 `--with-mcp`）：用户级配置注册 `arxiv`（本机 arxiv-mcp-server，无 key）与可选 `alphaxiv`（注册前探测 key 有效性） / **registers MCPs** (only with `--with-mcp`): user-scope `arxiv` (local arxiv-mcp-server, keyless) and optional `alphaxiv` (key probed before registration)
-- **不触碰** `~/.claude/settings.json` 与项目级配置 / does **not** touch `~/.claude/settings.json` or project-level config
-
-全部操作可回退：备份目录保留至你手动删除。 / Everything is reversible: backups persist until you delete them manually.
+安装会覆盖同名技能与全局 `~/.claude/CLAUDE.md`，原件自动备份到 `~/.claude/backups/`，删除备份目录即可恢复；不修改 `~/.claude/settings.json` 与项目级配置。 / Installation overwrites same-name skills and the global `~/.claude/CLAUDE.md`; originals are backed up to `~/.claude/backups/` (delete the backup to revert). `~/.claude/settings.json` and project-level configs are never touched.
 
 ## 许可证 / License
 
-- 本仓库原创内容：**MIT**（见 [LICENSE](LICENSE)）。 / Original content in this repository: **MIT** (see [LICENSE](LICENSE)).
-- **第三方组件以各自许可证为准**，逐组件来源/许可证/修改情况见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。其中 `academic-research-suite`（vendored ARS）上游为 **CC BY-NC 4.0（仅限非商业使用）**，商业使用需获得上游作者（Cheng-I Wu）另行授权；5 个写作模板技能为 CC-BY-4.0；Orchestra Research 与 ARIS 组件为 MIT。 / **Third-party components keep their own licenses** — per-component source/license/modification details are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). `academic-research-suite` (vendored ARS) is **CC BY-NC 4.0 (non-commercial only)**; the 5 writing-template skills are CC-BY-4.0; Orchestra Research and ARIS components are MIT.
-
+本仓库原创内容以 **MIT** 发布（见 [LICENSE](LICENSE)）；第三方组件以各自许可证发布，逐组件说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。 / Original content is released under **MIT** (see [LICENSE](LICENSE)); third-party components keep their own licenses — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
