@@ -13,7 +13,7 @@ Derive a short slug from the topic (lowercase, hyphens, no filler words, ≤5 wo
 ## Tools (Claude Code)
 
 - Web search: `WebSearch`. Fetch pages: `WebFetch`.
-- 证据分级与全文核验义务见 `shared-references/full-text-verification-policy.md`（承重声明必须 full-text 级；arxiv MCP 的 `[pdf]` 为可选依赖，失败降级 alphaxiv，再降级只产出 fragment 级证据）。
+- 证据分级与全文核验义务见 `../shared-references/full-text-verification-policy.md`（承重声明必须 full-text 级；arxiv MCP 的 `[pdf]` 为可选依赖，失败降级 alphaxiv，再降级只产出 fragment 级证据）。
 - Academic papers, backend priority with auto-degradation (record the probe result in provenance): (1) `alphaxiv` MCP tools (`discover_papers`, `get_paper_content`, `answer_pdf_queries`, `read_files_from_github_repository`) when visible and healthy — on 401/403 immediately stop retrying and drop to (2); (2) **arxiv MCP (primary, keyless)** — `mcp__arxiv__search_papers` / `download_paper` / `read_paper` / `search_paper_text` for systematic search and full-text claim verification; (3) fallback: WebSearch/WebFetch on arxiv.org, degradation explicitly noted in provenance.
 - Subagents: the `Agent` tool with `subagent_type` `researcher` / `verifier` / `reviewer`. Spawn parallel researchers in one message. Real output goes to files.
 

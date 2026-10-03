@@ -24,7 +24,7 @@ Read the project's `CLAUDE.md` to determine the experiment environment:
 
 **Modal detection:** If `CLAUDE.md` has `gpu: modal` or a `## Modal` section, the entire deployment is handled by the `remote-compute-modal` skill. Jump to **Step 4: Deploy (Modal)** — Steps 2-3 are not needed (Modal handles code sync and GPU allocation automatically).
 
-**Environment contract** (``shared-references/compute-env-contract.md`（仓库根目录）`): before
+**Environment contract** (`../shared-references/compute-env-contract.md`, installed with skills): before
 building or trusting any environment, read the provider's env ledger
 (`.aris/compute/<provider>.md`) — an unchanged spec hash means warm-reuse, a
 changed one means rebuild. New env → write the declarative spec first, render it
@@ -112,7 +112,7 @@ rsync -avz -e "ssh -p <PORT>" \
 ```
 
 Install dependencies per the env contract (ordered phases — pins first, one
-`pip install` per phase; see ``shared-references/compute-env-contract.md`（仓库根目录）`):
+`pip install` per phase; see `../shared-references/compute-env-contract.md`):
 ```bash
 ssh -p <PORT> root@<HOST> "pip install -q torch==<pinned>"       # phase 1: pins
 ssh -p <PORT> root@<HOST> "pip install -q <remaining packages>"  # phase 2+

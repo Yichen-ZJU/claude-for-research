@@ -1,5 +1,12 @@
 # <TASK_NAME> — autonomous experiment loop
 
+> Authoritative loop contract: `references/contract.md` inside this
+> package (copied from `experiment-forge/references/contract.md` at
+> forge time). If this template and the contract ever disagree, the
+> contract wins. Schema, bounds, crash/revert, Guard, min_delta and
+> log naming are all defined there.
+
+
 This repo is an autonomous research task. You (the agent) are the researcher. The human sets the direction; you run experiments indefinitely until interrupted.
 
 ## Setup

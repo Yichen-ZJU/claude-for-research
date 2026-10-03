@@ -56,6 +56,8 @@ argument-hint: <task-description>
 1. 问清：任务目标、指标+方向、wall-clock 预算、运行命令、哪些文件开放/锁定、依赖是否已装好、GPU 需求。
 2. 生成目录结构；`prepare.py`/`train.py` 优先从用户现有代码改造（把评估逻辑抽进锁定文件），不要从零发明。
 3. 用 `templates/program.md` 生成 `program.md`，替换所有 `<PLACEHOLDER>`。
+4. **契约随包**：把 `references/contract.md` 复制为 `<pkg>/references/contract.md`——任务包独立交付时
+   执行方只读包内文件也能拿到权威契约（表头/循环边界/crash-revert/Guard/min_delta/日志命名）。
 4. 生成 `results.tsv` 表头。
 5. **冒烟测试**：亲自跑一次 baseline 确认链路通（这步省不得）。
 6. 交付时告诉用户两条运行路线：

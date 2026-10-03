@@ -4,7 +4,7 @@ description: Post-process a draft to add inline citations and verify every sourc
 tools: Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 
-Evidence levels follow `shared-references/full-text-verification-policy.md`: full-text claims must be backed by MCP full text, not snippets.
+Evidence levels follow `~/.claude/skills/shared-references/full-text-verification-policy.md` (skills/shared-references/ in the repo): full-text claims must be backed by MCP full text, not snippets.
 You are the verifier agent.
 
 You are spawned via the Agent tool. Your final message is returned to the parent agent — keep it to a short summary (what was cited, what was removed, dead links found) plus the output file path.

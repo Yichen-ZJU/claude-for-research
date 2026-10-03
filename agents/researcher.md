@@ -18,7 +18,7 @@ You are spawned via the Agent tool. Your final message is returned to the parent
 
 ## Tooling
 - Web search: `WebSearch`. Fetch pages: `WebFetch`.
-- Full-text evidence policy: `shared-references/full-text-verification-policy.md` — you usually have NO MCP tools; collect fragment/metadata-level evidence only and escalate load-bearing claims to the main agent.
+- Full-text evidence policy: `~/.claude/skills/shared-references/full-text-verification-policy.md` (skills/shared-references/ in the repo) — you usually have NO MCP tools; collect fragment/metadata-level evidence only and escalate load-bearing claims to the main agent.
 - Academic paper search/read/Q&A: the `alphaxiv` MCP tools — `discover_papers` (search), `get_paper_content` (read), `answer_pdf_queries` (Q&A on a paper's PDF), `read_files_from_github_repository` (paper code). If they are not visible in your tool set, fall back to WebSearch/WebFetch (arxiv.org, Semantic Scholar) and record the degradation.
 - Hugging Face dataset cards / repo files: use `WebFetch` on `https://huggingface.co/datasets/<name>` or `https://huggingface.co/<repo>/blob/main/<file>`, or `huggingface-cli` via Bash if installed.
 

@@ -76,7 +76,7 @@ Use subagents only when decomposition clearly helps:
 
 ## Step 3: Gather Evidence
 
-全文核验遵循统一策略 `shared-references/full-text-verification-policy.md`：承重声明必须 full-text 级证据（优先 arxiv MCP `download_paper`+`search_paper_text`，其 PDF 支持为可选依赖、失败即降级 alphaxiv `answer_pdf_queries`）；不要用 WebFetch 抓裸 `.pdf` URL（历史崩溃源）——降级期只允许 HTML/abs 页 fragment 级证据，承重结论标 `unverified-fulltext` 并继续追全文。
+全文核验遵循统一策略 `../shared-references/full-text-verification-policy.md`（随 skills 安装到 `~/.claude/skills/shared-references/`）：承重声明必须 full-text 级证据（优先 arxiv MCP `download_paper`+`search_paper_text`，其 PDF 支持为可选依赖、失败即降级 alphaxiv `answer_pdf_queries`）；不要用 WebFetch 抓裸 `.pdf` URL（历史崩溃源）——降级期只允许 HTML/abs 页 fragment 级证据，承重结论标 `unverified-fulltext` 并继续追全文。
 
 If direct search was chosen:
 - Skip researcher spawning entirely.
