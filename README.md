@@ -92,7 +92,7 @@ claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 
 ## 安装说明 / Install Notes
 
-安装会覆盖同名技能与全局 `~/.claude/CLAUDE.md`，原件自动备份到 `~/.claude/backups/`，删除备份目录即可恢复；不修改 `~/.claude/settings.json` 与项目级配置。 / Installation overwrites same-name skills and the global `~/.claude/CLAUDE.md`; originals are backed up to `~/.claude/backups/` (delete the backup to revert). `~/.claude/settings.json` and project-level configs are never touched.
+安装会覆盖同名技能与全局 `~/.claude/CLAUDE.md`，原件自动备份到 `~/.claude/backups/<时间戳>-<PID>/restore/`。恢复方式：把备份目录内原件复制回原位；删除备份目录只是清理，不是恢复（原件在备份里）。不修改 `~/.claude/settings.json` 与项目级配置。 / Installation overwrites same-name skills and the global `~/.claude/CLAUDE.md`; originals are backed up under `~/.claude/backups/<timestamp>-<PID>/restore/`. To revert, copy the originals back from that directory — deleting the backup only discards it. `~/.claude/settings.json` and project-level configs are never touched.
 
 ## 许可证 / License
 
