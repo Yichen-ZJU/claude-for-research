@@ -19,3 +19,24 @@
 - **G 规则（verified）**：agents/researcher.md 零结果戒律改为 not-found/unverified 语义（零结果≠不存在，需换源+放宽查询复核）；新增 `shared-references/full-text-verification-policy.md` 统一全文核验策略（证据四级分级、何时必须 full-text、arxiv MCP `[pdf]` 可选依赖与降级链、子代理只产 fragment/metadata 级证据），deep-research/literature-review/researcher/verifier 四入口挂载。
 
 测试证据：A 类合成 screen 输出/临时目录 19/19；B1 临时 git 仓复现-修复-验证；C 类假 HOME 隔离（C1 exit2 零写入 / C2 双备份 / C3 失败恢复 / C4 exit1 / C5 EOF 跳过）。未打 tag、未发 release——发版等用户拍板。
+
+## 2026-10-03 系统性修复与改进（二轮工程核验，verified）
+
+发布前工程核验的回归修复与缺口收口，全部附测试，commit 按域分块：
+
+- **H 队列调度器**：OOM 等待重试改非终态 `retry_wait`（单任务队列不再 attempt 1 就终局，旧状态文件自动迁移）；`started_ts` 提前到子进程启动前（2 秒内产物快任务不再误判）；用户命令独立子 shell + tmp+rename 原子标记（自带 `exit 0` 不再跳过标记，环境失败也落非零码）；失败 phase 的不可执行后继标 `blocked`（终态非成功），队列进程遇失败退出码非零。验收：三阶段失败链 4 轮询全终态+退出码非零、虚拟时钟 OOM 跑满 2 attempts、`exit 0` 命令 completed、快任务 completed（17/17）。
+- **I 安装器**：事务清单回滚（新建删除/替换还原，恢复消息先逐条校验再输出）；符号链接按原 target 重建（悬空链接同样恢复，`-e` 漏检改 `-e || -L`）；互斥锁（lockdir+pid，第二实例直接退出，陈旧锁自动接管）；SIGTERM/INT 事务回滚；README 恢复说明纠错（恢复=从备份复制原件，删备份≠恢复）。假 HOME 五场景 15/15。
+- **J 交付完整性**：`shared-references/`（compute-env-contract、full-text-verification-policy、新增 external-cadence）移入 `skills/` 随安装交付，全仓引用路径同步；forge 生成任务包时契约随包复制（`references/contract.md`），program.md 顶部指向包内权威契约。
+- **K 远端同步**：rsync include 白名单补 `*.toml`/`*.cfg`/`*.ini`/`requirements*.txt`/`environment*.yml`；`PY_COUNT` 改远端求值（单引号远端命令），本地预求值 bug 消除。
+- **L ARS 自检**：打包布局检测与引擎标记解耦，claude 版离线自检退出 0（双引擎实测）。
+- **M 协议文本**：同迭代内确认跑/修复跑独立日志（`run-N-confirm.log` / `run-N-fix<K>.log`），契约/模板/autoresearch 三处同步；WIP 快照三态语义（user-wip 永不回滚目标 / iter-start discard 校验对象 / last-good 回滚目标）。
+- **N 许可材料**：5 个 CC-BY 技能各加 AUTHORSHIP.md（来源 Supervisor-Skills 体系，迁移未保留作者署名——如实注明）；THIRD_PARTY_NOTICES 附录补 Orchestra/ARIS/a-evolve 三段 MIT 全文。
+- **O 加固与测试**：watchdog 会话名精确匹配（exp1/exp10 混淆消除）+ 零字节目标宽限后报 STALLED（不再假 OK）；任务名 `../` 路径穿越双入口拒绝；arxiv MCP stdio 工具级探测（注册但失效不再凭服务名报 ok）；manifest 生成器字段保留与 KeyError 防御；新增 `tests/` 一键回归集（队列状态机 17 项 + 安装器场景 7 项）。
+
+### 已知限制（有意记录，非静默跳过）
+
+- **F06 断点恢复协议**：autoresearch 续跑依赖 results.tsv + git 历史推断，无显式 checkpoint 格式；长循环被外部杀死后恢复精度受日志完整性限制。理由：完整 checkpoint 协议改动面大，当前账本+历史回溯已覆盖常见场景。
+- **F08 独立评估/split/指标来源核验**：replication 技能对论文宣称的 split 与指标来源未做自动化交叉核验，依赖人工对照。理由：需要按论文逐领域建核验规则，通用实现易误报，暂记为人工步骤。
+- **V04 ARS 运行依赖 doctor**：academic-research-suite 未提供自检脚本所需的运行依赖探测（uv/python 包Presence）；当前由 SKILL.md 允许列表兜底。理由：上游 doctor 语义与双引擎适配耦合，低风险缓办。
+- **S01 代码生成 preset 进程内 exec**：a-evolve 的 preset 代码生成路径在进程内执行生成代码，隔离性依赖调用方环境；沙箱执行留作后续硬化项。理由：改隔离执行需改动 preset 契约，影响面大。
+- **D01 forge description 元数据**：experiment-forge 生成的任务包 description 字段为自由文本，无结构化校验。理由：消费方（autoresearch）当前不依赖该字段做决策。
