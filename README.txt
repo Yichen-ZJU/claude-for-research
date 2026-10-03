@@ -21,9 +21,9 @@ Research narrative
   the bounded, unattended optimization loop. Improvement is a goal, not a
   promised benchmark result. ArXiv MCP is the full-text retrieval backend.
 
-Repository snapshot checked 2026-10-01
-  Claude: 115 skills at fde7ef996540c5bcf58569fb48094314732ccdb0
-  Codex: 115 skills at 9d661a2ebe5a3dcaf8d20c292e487c5f72190e5e
+Repository snapshot checked 2026-10-03
+  Claude: 115 skills at 43fdfa011c0c0324ae40e0c82a99380ec138c780
+  Codex: 115 skills at 72d4efd330ebecc0b4031cb231d83cd7fcd92f6e
   Shared names: 115.
   Count convention: skills/<directory>/SKILL.md; not agents or nested references.
 
@@ -61,7 +61,7 @@ Acknowledgements
   ARIS — experiment queues, watchdogs, and experimental safety conventions
     https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep
   Source URLs checked against server repository remotes/source notes and their
-  GitHub pages on 2026-10-01. The former getcompanion-ai/feynman URL redirects
+  GitHub pages on 2026-10-03. The former getcompanion-ai/feynman URL redirects
   to Companion-Inc/feynman. Component licenses remain in the source repositories.
   Acknowledgement does not imply affiliation or endorsement.
 
