@@ -37,11 +37,16 @@ Columns:
   whether to continue* — it does NOT override maxIterations/timeout.
 - Stagnation rule (10 iterations without keep) per autoresearch SKILL.
 
-## 3. Run logs (per iteration, never overwritten)
+## 3. Run logs (per iteration per phase, never overwritten)
 
 - Iteration N writes `run-<N>.log` (e.g. `run-7.log`), never a shared
   `run.log`. Baseline is `run-0.log`.
-- Redirect everything: `cmd > run-<N>.log 2>&1`; tee/direct output is
+- Within one iteration, each execution phase gets its OWN file —
+  overwriting a log mid-iteration destroys the evidence chain:
+  - `run-<N>.log` — the primary run;
+  - `run-<N>-confirm.log` — min_delta confirmation re-runs (§6);
+  - `run-<N>-fix<K>.log` — crash-fix attempts, K = 1, 2, 3 (§4).
+- Redirect everything: `cmd > run-<N>...log 2>&1`; tee/direct output is
   forbidden (context explosion).
 - Extract metrics with `grep "^<metric_name>:" run-<N>.log`; on empty
   grep, `tail -n 50 run-<N>.log` for the stack trace.

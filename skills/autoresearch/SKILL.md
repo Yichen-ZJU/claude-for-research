@@ -30,7 +30,11 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 - 工作树不干净 / detached HEAD → **不再"开专支即可"**（旧规则会让实验 revert 吞掉用户未提交修改）：
   1. 记录基线 SHA：`git rev-parse HEAD`。
   2. 把用户未提交改动固化为独立 commit：`chore: wip snapshot before autoresearch (<tag>)`。实验 revert 链从此只碰 `experiment:` commit，用户工作永远在链外。
-  3. 内容级快照：对 scope 内文件做 `sha256sum` 清单，**作为 wip snapshot commit 的一部分提交**（如 `.autoresearch-baseline.sha256`）。清单绝不能留到实验 commit 里——revert 实验 commit 会把其中新增的文件一并删除。收尾/回滚后用 `git show <snapshot-sha>:.autoresearch-baseline.sha256` 与当前文件哈希对比验证，不只看分支名。
+  3. **三份内容快照，各有用途、时机不同**（只存最初一份会在合法 keep 之后误判）：
+     - **user-wip**：iteration 0 之前，用户原始 WIP 状态的 sha256 清单，随 wip snapshot commit 提交（如 `.autoresearch-user-wip.sha256`）。**永不作为 revert 目标**——它保护的是用户工作本身；收尾验证"用户内容未被实验污染"时对比它。
+     - **iter-start**：每轮 modify 之前，对 scope 内文件做 sha256 清单（内存或 `.autoresearch/state/`，**不提交**）。它是本轮 discard 的校验对象——`git revert HEAD` 后文件内容应对齐 iter-start 快照。
+     - **last-good**：最近一次 keep 之后的状态（初始 = user-wip）。真正的"安全回滚目标"：多轮 keep 后的 discard 若只 revert 一轮不够，回到 last-good 必可运行。
+     清单绝不能留到实验 commit 里——revert 实验 commit 会把其中新增的文件一并删除。收尾验证用 `git show <snapshot-sha>:.autoresearch-user-wip.sha256` 对比，不只看分支名。
   4. detached HEAD → 先建工作分支再进循环。
   无人值守模式同样执行，不跳过。
 
@@ -97,9 +101,10 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 grep "^<metric_name>:" run-<N>.log    # 只提取指标行
 ```
 grep 为空 = 崩溃，`tail -n 50 run-<N>.log` 看栈。results.tsv 的 iteration 列与日志文件号一一对应，可对账。
+**同迭代内的每次执行各用各的文件**：确认跑 `run-<N>-confirm.log`，第 K 次修复跑 `run-<N>-fix<K>.log`——同文件覆盖会让崩溃证据链断掉。
 
 ### 4.5 Verify（噪声防护）
-- 改进幅度 < min_delta → **确认跑**：重跑 1-2 次取中位数再判定
+- 改进幅度 < min_delta → **确认跑**：重跑 1-2 次取中位数再判定（日志写 `run-<N>-confirm.log`）
 - 指标非数字/提取失败 → 记 `metric-error`，revert
 
 ### 4.6 Guard（如配置）
@@ -107,8 +112,8 @@ Guard 失败 → 无论指标如何都 revert，记 `guard-fail`。可重试一�
 
 ### 4.7 Decide（六态）
 - **keep**：指标改进（超 min_delta）且 Guard 过 → 分支前进
-- **discard**：指标变差 → `git revert HEAD --no-edit`（**不用 reset —— 失败保留在历史里供学习**）
-- **crash**：运行崩溃 → 语法/导包错误立即免费修复重跑；运行时错误最多自动修 3 次；修不好 revert 记 crash
+- **discard**：指标变差 → `git revert HEAD --no-edit`（**不用 reset —— 失败保留在历史里供学习**）；revert 后按本轮 iter-start 快照校验文件内容确已还原
+- **crash**：运行崩溃 → 语法/导包错误立即免费修复重跑（日志 `run-<N>-fix<K>.log`）；运行时错误最多自动修 3 次；修不好 revert 记 crash
 - **no-op**：本轮无有效改动
 - **blocked**：外部依赖失效（数据集/服务/权限）
 
