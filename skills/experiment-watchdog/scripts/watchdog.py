@@ -60,6 +60,10 @@ def get_paths(base_dir):
 # ── Task registration ────────────────────────────────────────────
 
 
+import re as _re
+SAFE_NAME = _re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+
+
 def register_task(base_dir, task_json):
     paths = get_paths(base_dir)
     paths["base"].mkdir(parents=True, exist_ok=True)
@@ -71,6 +75,12 @@ def register_task(base_dir, task_json):
         print(f"error: missing required fields: {missing}", file=sys.stderr)
         sys.exit(1)
 
+    # M02: names become status file names (status/<name>.json); reject
+    # path traversal ("../") at registration time.
+    name = str(task.get("name", ""))
+    if not SAFE_NAME.match(name) or ".." in name:
+        print("error: unsafe task name (only [A-Za-z0-9_.-], no '..')", file=sys.stderr)
+        sys.exit(2)
     ttype = task["type"]
     if ttype not in ("training", "download", "loop"):
         print(f"error: type must be 'training', 'download', or 'loop', got '{ttype}'", file=sys.stderr)
@@ -147,7 +157,18 @@ def session_alive(session_name, session_type="screen"):
         r = subprocess.run(
             ["screen", "-list"], capture_output=True, text=True,
         )
-        return session_name in r.stdout
+        # Exact session-name match on "<pid>.<name>\t(...)" lines. A plain
+        # substring check confuses prefixes: session "exp1" must NOT match
+        # a alive-only "exp10" line.
+        for line in r.stdout.splitlines():
+            line = line.strip()
+            pid, dot, rest = line.partition(".")
+            if not dot or not pid.isdigit():
+                continue
+            session = rest.split("\t", 1)[0].split()[0] if rest else ""
+            if session == session_name:
+                return True
+        return False
 
 
 # ── GPU checks ───────────────────────────────────────────────────
@@ -204,14 +225,36 @@ def check_download(task, status_dir, interval):
 
     current_size = get_path_size(target)
 
-    # Read previous size for delta
+    # Read previous size (and zero-size streak) for delta
     prev_size = 0
+    first_zero_ts = None
     if status_file.exists():
         try:
             prev = json.loads(status_file.read_text())
             prev_size = prev.get("size", 0)
+            first_zero_ts = prev.get("first_zero_ts")
         except Exception:
             pass
+
+    # Zero-byte progress: a target that stays at 0 bytes is NOT healthy —
+    # report STALLED once the zero streak exceeds the grace period
+    # (2 check intervals), instead of misreporting OK forever.
+    if current_size == 0:
+        import datetime as _dt
+        if first_zero_ts is None:
+            first_zero_ts = time.time()
+        zero_for = time.time() - float(first_zero_ts)
+        if zero_for > 2 * max(interval, 1):
+            return write_status(status_file, {
+                "status": "STALLED", "task": name, "type": "download",
+                "size": 0, "first_zero_ts": first_zero_ts,
+                "msg": f"zero size for {int(zero_for)}s", "ts": now,
+            })
+        return write_status(status_file, {
+            "status": "OK", "task": name, "type": "download",
+            "size": 0, "first_zero_ts": first_zero_ts,
+            "msg": "alive, target still zero size (grace)", "ts": now,
+        })
 
     if current_size == prev_size and current_size > 0:
         return write_status(status_file, {

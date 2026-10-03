@@ -288,11 +288,30 @@ def phase_all_success(phase_name, state):
     return all(j["status"] in SUCCESS_STATES for j in phase_jobs)
 
 
+import re as _re
+SAFE_NAME = _re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+
+
+def sanitize_name(raw, kind="job id"):
+    """M02: reject path-traversal in names used for file/screen names.
+
+    Job ids become screen session names and log file names; a "../" id
+    would write state/logs outside the intended directories.
+    """
+    name = str(raw or "")
+    if not SAFE_NAME.match(name) or ".." in name:
+        raise ValueError(
+            f"unsafe {kind} {name!r}: only [A-Za-z0-9_.-], must start "
+            "alphanumeric, no '..', max 128 chars")
+    return name
+
+
 def assign_jobs_to_phases(manifest, state):
     """Ensure state.jobs contains all manifest jobs; idempotent."""
     for phase in manifest.get("phases", []):
         phase_name = phase.get("name")
         for job in phase.get("jobs", []):
+            sanitize_name(job.get("id"), "job id")
             existing = next((j for j in state["jobs"] if j["id"] == job["id"]), None)
             if not existing:
                 state["jobs"].append({

@@ -81,18 +81,31 @@ def build(config):
         "oom_retry": config.get("oom_retry", {"delay": 120, "max_attempts": 3}),
         "phases": [],
     }
-    for phase in config.get("phases", []):
+    # Q05: preserve optional top-level knobs instead of dropping them
+    for knob in ("conda_hook", "gpu_free_threshold_mib"):
+        if knob in config:
+            out[knob] = config[knob]
+
+    for idx, phase in enumerate(config.get("phases", [])):
+        # Q05: defensive field access with actionable errors, not raw KeyError
+        name = phase.get("name")
+        if not name:
+            raise ValueError(f"phases[{idx}]: missing 'name'")
+        template = phase.get("template") or {}
+        if "cmd" not in template:
+            raise ValueError(
+                f"phase {name!r}: template missing 'cmd' "
+                f"(available keys: {sorted(template)})")
         phase_out = {
-            "name": phase["name"],
+            "name": name,
             "depends_on": phase.get("depends_on", []),
             "jobs": [],
         }
         grid = phase.get("grid", {})
-        template = phase.get("template", {})
         if not grid:
             # Single job in this phase
             phase_out["jobs"].append({
-                "id": template.get("id", phase["name"]),
+                "id": template.get("id", name),
                 "cmd": template["cmd"],
                 "expected_output": template.get("expected_output"),
             })
