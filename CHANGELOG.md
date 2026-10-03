@@ -6,9 +6,9 @@
 - 双论文检索后端：arxiv MCP 主（无 key）+ alphaxiv 增强（install.sh 注册前 tools/list 探测，失效拒绝写入+清晰报错）。
 - 验证：install.sh 语法+双路探测测试；Skill 触发冒烟。
 
-## 2026-10-03 GPT 外部审查系统性修复（31 项发现，verified）
+## 2026-10-03 系统性修复与改进（31 项修复，verified）
 
-按 GPT 发布前审查逐条修复，全部附测试验证，commit 按 A-G 域分块：
+按 发布前系统性核验逐条修复，全部附测试验证，commit 按 A-G 域分块：
 
 - **A 队列（verified）**：`experiment-queue/scripts/queue_manager.py` 四连修——screen 会话解析改 Python 精确匹配（原 `grep -F '.\$name\\t'` 永不命中真实 TAB）；`output_exists` 改 glob 并定义语义（常规文件、非零字节、mtime ≥ 本轮启动，隔离陈旧结果）；完成判定 = 进程结束 + 退出码 0 原子标志 + 新输出三者共同（原只看文件存在，会误杀 running 任务）；状态机区分终态/成功态，`failed_other` 让队列收尾但永不解锁下游 phase。合成测试 19/19 通过（/tmp/eqtest/test_queue_manager.py 方法）。
 - **B 协议（verified）**：新增 `experiment-forge/references/contract.md` 作为实验循环单一契约（results.tsv 9 列、循环边界、crash/revert、Guard、min_delta、run-<N>.log）；`program.md` 模板按契约重写（原 5 列 LOOP FOREVER 漂移）；autoresearch Step 0 脏工作区规则改"用户 WIP 固化为独立 commit + sha256 清单随快照提交"，临时 git 仓复现旧 bug（revert 吞用户改动）→修复→验证三步通过。
