@@ -2,7 +2,7 @@
 name: run-experiment
 description: Deploy and run ML experiments on local, remote, Vast.ai, or Modal serverless GPU. Use when user says "run experiment", "deploy to server", "跑实验", or needs to launch training jobs.
 argument-hint: "[experiment-description]"
-allowed-tools: Bash(*), Read, Grep, Glob, Edit, Write, Skill(serverless-modal)
+allowed-tools: Bash(*), Read, Grep, Glob, Edit, Write, Skill(remote-compute-modal)
 ---
 <!-- 来源: ARIS (https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep), MIT License. 本环境未做内容修改。 -->
 
@@ -20,11 +20,11 @@ Read the project's `CLAUDE.md` to determine the experiment environment:
 - **Local GPU** (`gpu: local`): Look for local CUDA/MPS setup info
 - **Remote server** (`gpu: remote`): Look for SSH alias, conda env, code directory
 - **Vast.ai** (`gpu: vast`): Check for `vast-instances.json` at project root — if a running instance exists, use it. Also check `CLAUDE.md` for a `## Vast.ai` section.
-- **Modal** (`gpu: modal`): Serverless GPU via Modal. No SSH, no Docker, auto scale-to-zero. Delegate to `/serverless-modal`.
+- **Modal** (`gpu: modal`): Serverless GPU via Modal. No SSH, no Docker, auto scale-to-zero. Delegate to the `remote-compute-modal` skill.
 
-**Modal detection:** If `CLAUDE.md` has `gpu: modal` or a `## Modal` section, the entire deployment is handled by `/serverless-modal`. Jump to **Step 4: Deploy (Modal)** — Steps 2-3 are not needed (Modal handles code sync and GPU allocation automatically).
+**Modal detection:** If `CLAUDE.md` has `gpu: modal` or a `## Modal` section, the entire deployment is handled by the `remote-compute-modal` skill. Jump to **Step 4: Deploy (Modal)** — Steps 2-3 are not needed (Modal handles code sync and GPU allocation automatically).
 
-**Environment contract** (`../shared-references/compute-env-contract.md`): before
+**Environment contract** (``shared-references/compute-env-contract.md`（仓库根目录）`): before
 building or trusting any environment, read the provider's env ledger
 (`.aris/compute/<provider>.md`) — an unchanged spec hash means warm-reuse, a
 changed one means rebuild. New env → write the declarative spec first, render it
@@ -36,7 +36,7 @@ verbatim and reports doc-vs-reality divergence).
 **Vast.ai detection priority:**
 1. If `CLAUDE.md` has `gpu: vast` or a `## Vast.ai` section:
    - If `vast-instances.json` exists and has a running instance → use that instance
-   - If no running instance → call `/vast-gpu provision` which analyzes the task, presents cost-optimized GPU options, and rents the user's choice
+   - If no running instance → use the `remote-compute-ssh` skill: analyze the task's VRAM needs, rent a cost-optimized instance on the vast.ai console or CLI (`vastai search offers` / `vastai create instance`), then treat it as a plain SSH remote
 2. If no server info is found in `CLAUDE.md`, ask the user.
 
 ### Step 2: Pre-flight Check
@@ -69,9 +69,20 @@ Check the project's `CLAUDE.md` for a `code_sync` setting. If not specified, def
 
 #### Option A: rsync (default)
 
-Only sync necessary files — NOT data, checkpoints, or large files:
+Only sync necessary files — NOT data, checkpoints, or large files.
+IMPORTANT: `--include='*/'` must come before the file-type includes —
+without it rsync never descends into subdirectories and silently skips
+e.g. `model/network.py` and `config.yaml`:
 ```bash
-rsync -avz --include='*.py' --exclude='*' <local_src>/ <server>:<remote_dst>/
+rsync -avz   --include='*/'   --include='*.py' --include='*.yaml' --include='*.yml' --include='*.json'   --include='*.txt' --include='*.sh' --include='*.md'   --exclude='*'   <local_src>/ <server>:<remote_dst>/
+```
+
+Verify the sync actually transferred the tree (rsync exits 0 even when
+nothing matched — an empty remote dir looks identical to a broken
+include list without this check):
+```bash
+ssh <server> "cd <remote_dst> && find . -name '*.py' | head -5 && echo PY_COUNT=$(find . -name '*.py' | wc -l)"
+# 与本地对照： find <local_src> -name '*.py' | wc -l —— 数量级应一致
 ```
 
 #### Option B: git (when `code_sync: git` is set in CLAUDE.md)
@@ -101,7 +112,7 @@ rsync -avz -e "ssh -p <PORT>" \
 ```
 
 Install dependencies per the env contract (ordered phases — pins first, one
-`pip install` per phase; see `../shared-references/compute-env-contract.md`):
+`pip install` per phase; see ``shared-references/compute-env-contract.md`（仓库根目录）`):
 ```bash
 ssh -p <PORT> root@<HOST> "pip install -q torch==<pinned>"       # phase 1: pins
 ssh -p <PORT> root@<HOST> "pip install -q <remaining packages>"  # phase 2+
@@ -178,7 +189,7 @@ After launching, update the `experiment` field in `vast-instances.json` for this
 
 #### Modal (serverless)
 
-When `gpu: modal` is detected, delegate to `/serverless-modal`:
+When `gpu: modal` is detected, delegate to the `remote-compute-modal` skill:
 
 1. **Analyze task** — determine VRAM needs, choose GPU, estimate cost
 2. **Generate launcher** — create a `modal_launcher.py` that wraps the training script using `modal.Mount.from_local_dir` for code and `modal.Volume` for results

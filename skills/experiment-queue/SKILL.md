@@ -152,34 +152,25 @@ If any precondition fails, show user which jobs are blocked and why.
 
 ### Step 3: Launch Scheduler
 
-The canonical scheduler implementation lives in `skills/experiment-queue/scripts/queue_manager.py` (Phase 3.3 move, Arch C). `tools/experiment_queue/queue_manager.py` is now a Python `os.execv` shim retained for legacy resolver-chain compatibility. Three preliminaries before launch.
+The scheduler implementation lives in this skill's `scripts/queue_manager.py`, installed alongside the SKILL.md. Three preliminaries before launch.
 
-**3a. Resolve the local helper directory.** The two helpers (`queue_manager.py`, `build_manifest.py`) now sit under `skills/experiment-queue/scripts/` in the ARIS repo, with shims at `tools/experiment_queue/` for legacy resolver layers. Use this hybrid chain so the skill works from any project layout:
+**3a. Resolve the local helper directory.** The two helpers (`queue_manager.py`, `build_manifest.py`) ship inside this skill's `scripts/` directory and are installed with it to `~/.claude/skills/experiment-queue/scripts/`. Resolve them from the running skill's own location — do NOT rely on `$CLAUDE_SKILL_DIR` being an exported environment variable (it is a literal string-substitution token in command templates, not shell state), and do NOT chase legacy `.aris/tools` / `$ARIS_REPO` layout chains (historical ARIS installer layout, no longer shipped):
 
 ```bash
-# Layer 0: self-contained (CC 1.0+ exposes $CLAUDE_SKILL_DIR).
+# The skill file itself is the anchor. When executing from the skill
+# directory context, scripts sit right next to the SKILL.md:
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 QUEUE_TOOLS=""
-if [ -n "${CLAUDE_SKILL_DIR:-}" ] && [ -f "$CLAUDE_SKILL_DIR/scripts/queue_manager.py" ]; then
-  QUEUE_TOOLS="$CLAUDE_SKILL_DIR/scripts"
-fi
-# Layers 1-4: legacy chain via tools/experiment_queue/ shims.
-if [ -z "$QUEUE_TOOLS" ]; then
-  cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" || exit 1
-  if [ -z "${ARIS_REPO:-}" ] && [ -f .aris/installed-skills.txt ]; then
-      ARIS_REPO=$(awk -F'\t' '$1=="repo_root"{print $2; exit}' .aris/installed-skills.txt 2>/dev/null) || true
-  fi
-  if [ -z "${ARIS_REPO:-}" ] && [ -f "$HOME/.aris/repo" ]; then
-      ARIS_REPO=$(cat "$HOME/.aris/repo" 2>/dev/null) || true
-  fi
-  QUEUE_TOOLS=".aris/tools/experiment_queue"
-  [ -f "$QUEUE_TOOLS/queue_manager.py" ] || QUEUE_TOOLS="tools/experiment_queue"
-  [ -f "$QUEUE_TOOLS/queue_manager.py" ] || { [ -n "${ARIS_REPO:-}" ] && QUEUE_TOOLS="$ARIS_REPO/tools/experiment_queue"; }
-  [ -f "$QUEUE_TOOLS/queue_manager.py" ] || QUEUE_TOOLS=""
-fi
-[ -z "$QUEUE_TOOLS" ] && { echo "ERROR: experiment_queue helpers not found (layer 0: \$CLAUDE_SKILL_DIR/scripts/; layers 1-4: .aris/tools/, tools/, \$ARIS_REPO/tools/, \$ARIS_REPO/tools/ via ~/.aris/repo). Rerun install_aris.sh or smart_update.sh (refreshes ~/.aris/repo), set ARIS_REPO, or copy the canonical scripts from \$ARIS_REPO/skills/experiment-queue/scripts/." >&2; exit 1; }
+for cand in \
+    "$SKILL_DIR/scripts" \
+    "$HOME/.claude/skills/experiment-queue/scripts" \
+    "$HOME/.codex/skills/experiment-queue/scripts"; do
+  [ -f "$cand/queue_manager.py" ] && { QUEUE_TOOLS="$cand"; break; }
+done
+[ -z "$QUEUE_TOOLS" ] && { echo "ERROR: queue helpers not found. Expected skills/experiment-queue/scripts/queue_manager.py next to this SKILL.md (or under ~/.claude|~/.codex skills). Re-run the installer to restore." >&2; exit 1; }
 ```
 
-The `.aris/tools` symlink is set up by `install_aris.sh` (#174). Older installs without that symlink fall through to `tools/experiment_queue` (works if invoked from inside the ARIS repo), `$ARIS_REPO/tools/experiment_queue`, or the same path resolved via the global pointer file `~/.aris/repo` (#366, for installs with no project-local manifest). After Phase 3.3, each of those legacy paths contains a Python `os.execv` shim that forwards to the canonical `skills/experiment-queue/scripts/` location, so existing users do not need to re-run anything.
+If your harness does expose a skill-directory variable, the first candidate already covers it via the script's own location — no separate env var needed.
 
 **3b. Compute remote paths.** Use both a remote-relative form (for `scp` destinations — modern `scp` runs in SFTP mode and does NOT reliably expand `$HOME` in destination paths) and a `$HOME`-prefixed form (for `ssh ... command` strings, where remote bash WILL expand `$HOME`):
 
@@ -407,8 +398,8 @@ Then user can check anytime or wait for summary report.
 - `/run-experiment` — single experiment deployment
 - `/monitor-experiment` — check progress (now reads from queue_state.json)
 - `/analyze-results` — post-hoc analysis
-- `skills/experiment-queue/scripts/queue_manager.py` (canonical, Phase 3.3 move) — the scheduler implementation; resolved at runtime via the fallback chain in Step 3a. Legacy entry at `tools/experiment_queue/queue_manager.py` is an `os.execv` shim.
-- `skills/experiment-queue/scripts/build_manifest.py` (canonical, Phase 3.3 move) — build manifest from grid spec; same resolution chain. Legacy entry at `tools/experiment_queue/build_manifest.py` is an `os.execv` shim.
+- `skills/experiment-queue/scripts/queue_manager.py` — the scheduler implementation; resolved at runtime via the chain in Step 3a.
+- `skills/experiment-queue/scripts/build_manifest.py` — build manifest from grid spec; same resolution chain.
 
 ## Rationale / Source
 
