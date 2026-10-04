@@ -81,6 +81,16 @@ FINALIZE
 - **分析前先 sanity check**：训练收敛了吗？baseline 复现了吗？数据加载对吗？（抽查几个样本）
 - **commit 规范**：`research(init|protocol|results|reflect|paper): {简述}`，有意义的进展才 commit。
 
+## 近邻存在 ≠ 否决（Neighbors are not a veto）
+
+文献门/评审发现近邻或竞品**不是关闭课题的理由**，是触发 delta 声明的信号：
+
+- delta 声明四要件：**点名的最近邻** + **明确增量**（组合 A+B / 迁移新场景 /
+  补齐缺失对照 / 机制解释，均合法）+ **机制故事** + **失败模式预期**。
+- delta 清晰 → 正大光明继续推进（照常过 Gate，**不降档不绕开**）；
+  delta 模糊 → 才进入 PIVOT 分支。
+- 一句话决策规则：**有近邻 → 写 delta 声明并继续；要证明的现象还不存在 → 才需要空白证明。**
+
 ## findings.md 是项目记忆
 
 每次会话/循环开始先读它。每次外循环后更新四个问题：我们知道什么？什么模式解释了结果？哪些坑不要再踩（Lessons and Constraints，如"wd>0.1 在这个 scale 发散"）？还有什么 open？

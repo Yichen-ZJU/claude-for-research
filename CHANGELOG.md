@@ -40,3 +40,7 @@
 - **V04 ARS 运行依赖 doctor**：academic-research-suite 未提供自检脚本所需的运行依赖探测（uv/python 包Presence）；当前由 SKILL.md 允许列表兜底。理由：上游 doctor 语义与双引擎适配耦合，低风险缓办。
 - **S01 代码生成 preset 进程内 exec**：a-evolve 的 preset 代码生成路径在进程内执行生成代码，隔离性依赖调用方环境；沙箱执行留作后续硬化项。理由：改隔离执行需改动 preset 契约，影响面大。
 - **D01 forge description 元数据**：experiment-forge 生成的任务包 description 字段为自由文本，无结构化校验。理由：消费方（autoresearch）当前不依赖该字段做决策。
+
+## 2026-10-03 评审语义修正：近邻存在 ≠ 否决
+
+idea-evaluator 与 research-orchestrator 各增一节"近邻存在 ≠ 否决 / Neighbors are not a veto"：发现近邻/竞品不是否决或降档理由，而是触发 delta 声明（点名的最近邻 + 明确增量 + 机制故事 + 失败模式预期）的信号；delta 清晰则照常过 Gate，delta 模糊才 PIVOT。修正了"发现近邻→降分/绕开"的隐性偏置。v1.2 增量构思（incremental-ideation）的前置补丁。

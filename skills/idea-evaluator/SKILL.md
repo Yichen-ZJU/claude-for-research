@@ -40,6 +40,20 @@ writing begins.
 - The user mentions 'evaluate this idea', 'score this idea', 'assess
   feasibility', or 'is this a good research direction'.
 
+## Neighbors are not a veto / 近邻存在 ≠ 否决
+
+发现近邻或竞品**不是否决理由**，是触发 delta 声明的信号。评分时：
+
+- delta 声明四要件：**点名的最近邻**（具体论文/系统）+ **明确增量**
+  （相对最近邻多做了什么——组合 A+B、迁移新场景、补齐缺失对照、
+  给出机制解释，均为合法 delta 类型）+ **机制故事**（为什么增量
+  成立）+ **失败模式预期**（增量在什么情况下会失效）。
+- delta 清晰 → 照常推进（走完整 Gate，**不降档**）；delta 模糊 →
+  才建议 PIVOT。新颖性扣分只针对"说不清相对谁增量"，不针对
+  "有很近的近邻"。
+
+一句话决策规则：**有近邻 → 写 delta 声明并继续；要证明的现象还不存在 → 才需要空白证明。**
+
 ## When NOT to use this skill
 
 - The user has already implemented the idea and is writing the paper.
