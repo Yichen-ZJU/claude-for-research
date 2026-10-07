@@ -1,15 +1,15 @@
-<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/"><img src="assets/research-cover.png" alt="Claude for Research — Turn your AI CLI into an autonomous research lab" width="100%"></a></p>
+<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/"><img src="assets/research-cover.png?v=lemnivo-1" alt="Claude for Research (Lemnivo) — One research system. Two CLI engines." width="100%"></a></p>
 
-<h1 align="center">Claude for Research</h1>
-<p align="center"><strong>让想法，走到发现。<br>Turn your AI CLI into an autonomous research lab.</strong></p>
-<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/?lang=zh">中文主页</a> · <a href="https://yichen-zju.github.io/claude-for-research/?lang=en">English website</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Codex for Research</a></p>
+<h1 align="center">Claude for Research (Lemnivo)</h1>
+<p align="center"><strong>一套自主科研体系，两种 CLI 引擎。<br>One research system. Two CLI engines.</strong><br>让想法，走到发现。 / From an idea. To a discovery.</p>
+<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/?lang=zh">Lemnivo 中文主页</a> · <a href="https://yichen-zju.github.io/claude-for-research/?lang=en">Lemnivo in English</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Codex for Research (Lemnivo)</a></p>
 <p align="center"><img src="https://img.shields.io/badge/skills-115-B7F7D4?style=flat-square&amp;labelColor=101312" alt="115 skills"> <img src="https://img.shields.io/badge/engine-Claude%20Code-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Claude Code"> <img src="https://img.shields.io/badge/workflow-research%20%E2%86%92%20experiments%20%E2%86%92%20papers-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Research to experiments to papers"></p>
 
-把 **Claude Code** 变成一个自主科研工作台。从文献调研与选题，到无人值守的模型改进试验，再到论文写作与评审，由 **Research Orchestrator** 协调全程，115 个科研技能提供工作流与领域方法。
+**Lemnivo** 是运行在 Claude Code 与 Codex CLI 上的自主科研体系。**Claude for Research (Lemnivo)** 把 Claude Code 变成科研工作台：从深广度文献调研与 Idea 构思，到无人值守的模型改进试验，再到论文写作与评审，由 **Research Orchestrator** 协调全程，**115 个科研技能**提供工作流与领域方法。
 
-同一套技能目录也运行在 **Codex CLI** 上：选择习惯的 CLI，保留熟悉的科研流程。两个仓库各含 **115 个技能，技能名称集合一致**；工具调用与运行机制分别适配各自引擎。
+选择 **Claude Code** 或 **Codex CLI**，保留同一套 Lemnivo 科研流程。两个仓库各含 **115 个技能，技能名称集合一致**；工具调用与运行机制分别适配各自引擎。
 
-Equip **Claude Code** with an autonomous research workflow. **Research Orchestrator** coordinates literature and ideation, unattended model-improvement experiments, and writing and review. **115 skills** supply the research workflows and domain methods. The same skill catalogue runs on **Codex CLI**, with engine-specific tool adaptations.
+**Lemnivo** brings one autonomous research system to **Claude Code** and **Codex CLI**. **Claude for Research (Lemnivo)** equips Claude Code with broad and deep literature research, idea development, unattended model-improvement experiments, and paper writing and review. **Research Orchestrator** coordinates the whole journey, supported by **115 research skills** and nested experiment and reflection loops. The same skill catalogue runs on Codex CLI, with engine-specific tool adaptations.
 
 ## 一套流程，两层循环 / One workflow, two loops
 
