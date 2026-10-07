@@ -40,6 +40,9 @@ to deliver it.
 - Before writing any Introduction prose.
 - The user has finished planning but the Intro story feels fragmented.
 - The user has a partial Intro and wants to restructure.
+- A narrative mainline already exists (paper-narrative plan)
+  and the Introduction must be written to it, or an existing one checked
+  against it.
 - The user asks to 'draft the Introduction', 'outline the
   Introduction', 'intro logic needs clarifying', or 'help structure
   the paper story'.
@@ -64,6 +67,14 @@ to deliver it.
   does not replace a submission checklist.)
 
 ## Core procedure
+
+### Step 0: 叙事主线对接（若存在）
+
+若 `outputs/.plans/<slug>.md` 已有 `paper-narrative` 产出的叙事主线
+（六种科学叙事范式之一 + 主张—证据对应），以其为本文的逻辑上游：
+六段的内容服从主线，段落功能不变。**已有 Introduction 的任务**：
+跳过起草，改为检查现有 Intro 与主线的对齐（问题是否同一、挑战与
+贡献是否服务主线、结尾落点是否一致）并给出修订意见，不重启流程。
 
 ### Step 1: Paper-type positioning
 

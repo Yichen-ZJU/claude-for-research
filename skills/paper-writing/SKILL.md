@@ -18,6 +18,7 @@ Derive a short slug from the topic (lowercase, hyphens, no filler words, ≤5 wo
 
 ## Requirements
 
+- **Whole-draft or core-structure rewrites**: first read — or establish via `paper-narrative` — the shared narrative plan at `outputs/.plans/<slug>.md` (mainline, claim–evidence map, section order). Write to that plan; do not invent a parallel story. **Language-only polish stays narrow**: it must not expand into a full research pipeline (no new experiments, no re-deriving the storyline) unless the user asks.
 - Before writing, outline the draft structure: proposed title, sections, key claims to make, source material to draw from, and a verification log for the critical claims, figures, and calculations. Write the outline to `outputs/.plans/<slug>.md`. Briefly summarize the outline to the user and continue immediately. Do not ask for confirmation or wait for a proceed response unless the user explicitly requested outline review.
 - Use the `writer` subagent when the draft should be produced from already-collected notes, then use the `verifier` subagent to add inline citations and verify sources.
 - Include at minimum: title, abstract, problem statement, related work, method or synthesis, evidence or experiments, limitations, conclusion.

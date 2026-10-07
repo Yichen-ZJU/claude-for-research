@@ -25,22 +25,31 @@ argument-hint: <topic-or-results-dir> [--venue <venue>] [--type technique|benchm
 
 **质量门**：四点自洽检查通过（挑战↔方法模块↔贡献一一对应）。
 
+### Stage 1.5 — 叙事主线（逻辑骨架之后、Introduction 之前）
+
+调 `paper-narrative`：按贡献的真实形态从六种科学叙事范式中选择（或确认）全文主线，把轻量叙事计划写入 `outputs/.plans/<slug>.md`（核心问题/缺口/发现/贡献意义/主线选择/主张—证据对应/章节推进与结尾落点）。范式细节见 paper-narrative 的 `references/story-patterns.md`。
+
+- **已有 Introduction 的任务**：跳过起草，改为检查现有 Intro 与主线的对齐并修订，不重启流程。
+- 此后 Stage 2–6 共用这一份主线；后续核心发现变化时，先更新叙事计划再修订对应章节。
+
+**质量门**：主线能一句话说清"本文让读者新知道了什么"；每个关键主张都有对应证据（可以是待检验的，但必须标明）。
+
 ### Stage 2 — Introduction
 
 调 `intro-drafter`：从结构化 Flowchart 产六段大纲（背景+running example → 现有局限 → 问题本质与目标 → 关键挑战 → 方案总览 → 贡献列表），贡献与挑战对齐。
 
 **质量门**：六段逻辑链能一口气讲通；每段都能在骨架里找到对应。
 
-### Stage 3 — 全文叙事与图规划
+### Stage 3 — 证据弧与图规划（主线已定）
 
-调 `paper-narrative`：提炼中心 claim、证据链、图的顺序（每张图支撑哪个决策），标出"图 claim 超出数据证据"的危险点。
+在 Stage 1.5 的叙事计划之上，调 `paper-narrative` 细化：中心 claim、证据链、图的顺序（每张图支撑哪个决策），标出"图 claim 超出数据证据"的危险点。与 Stage 1.5 共用同一份计划，不另起故事。
 图的设计与绘制走 `figure-style` / `figure-composer` / `academic-plotting`。
 
 **质量门**：每张图有明确的"它证明什么"；没有无数据支撑的图。
 
 ### Stage 4 — 初稿
 
-走 `paper-writing` 工作流：`writer` agent 从研究文件起草（不编造结果，缺证据留 TODO）→ `verifier` agent 逐条加引用、核验 URL、删无源声明。
+走 `paper-writing` 工作流：`writer` agent 按 Stage 1.5 的叙事计划从研究文件起草（不编造结果，缺证据留 TODO）→ `verifier` agent 逐条加引用、核验 URL、删无源声明。
 排版模板：ML 会议（NeurIPS/ICML/ICLR/ACL/AAAI/COLM）用 `ml-paper-writing` 的 LaTeX 模板；系统会议（OSDI/SOSP/ASPLOS/NSDI）用 `systems-paper-writing`。
 **文笔**：段落和句子层面遵循 `research-paper-writing`（彭思达方法论：一段一信息、首句点题、句间流转），各节 prose 指导读它的 `references/{abstract,introduction,related-work,method,experiments,conclusion}.md`。若 `outputs/style-profile-<author>.md` 存在（由 `style-calibration` 建立），writer 起草时把它作为软约束贴合作者声纹。
 
@@ -64,7 +73,7 @@ argument-hint: <topic-or-results-dir> [--venue <venue>] [--type technique|benchm
 ## 用法
 
 - **全流程**："把 experiments/ 里的结果写成 NeurIPS 论文" → 从 Stage 1 开始（Stage 0 可选）
-- **中途进入**：用户已有骨架/初稿 → 从对应阶段切入，之前的阶段视为已过门但需快速 sanity check
+- **中途进入**：用户已有骨架/初稿 → 从对应阶段切入，之前的阶段视为已过门但需快速 sanity check；已有初稿必过 Stage 1.5 的对齐检查
 - **单独阶段**：用户只要 intro / 只要审稿 → 直接调对应 skill，不必走全线
 
 ## 纪律
