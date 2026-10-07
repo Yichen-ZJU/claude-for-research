@@ -12,6 +12,7 @@
 #   I3 符号链接按类型与原位置重建（悬空链接同样恢复）
 #   I4 安装互斥锁（lockdir+pid 检测）+ SIGTERM/INT 事务回滚
 set -euo pipefail
+set -E  # errtrace：ERR trap 继承进函数（S3 修复的前提：回滚已先事务化，见 rollback）
 
 usage() {
   cat <<'EOF'
@@ -93,11 +94,15 @@ rollback() {
         replaced)
           rel="${path#$CLAUDE_DIR/}"
           orig="$BAK_ROOT/restore/$rel"
-          rm -rf -- "$path"
-          # cp -a 重建符号链接本身（含悬空链接），不跟随目标
+          # I01: 备份确认存在才动目标；备份缺失时保现状并告警，绝不删唯一原件
           if path_exists "$orig"; then
+            rm -rf -- "$path"
+            # cp -a 重建符号链接本身（含悬空链接），不跟随目标
             mkdir -p "$(dirname "$path")"
             cp -a -- "$orig" "$path"
+          else
+            echo "    ⚠️ 备份缺失，保留现状不删: $path（请对照 $BAK_ROOT 手动核查）" >&2
+            failures=$((failures+1))
           fi
           ;;
       esac
@@ -127,16 +132,33 @@ STAGING="$(mktemp -d "$CLAUDE_DIR/.staging-XXXXXX")"
 mkdir -p "$STAGING/skills"
 cp -r "$REPO_DIR/skills/." "$STAGING/skills/"
 
+fail_install() {  # 显式统一失败路径：不依赖 ERR trap 对函数失败的继承行为（S3）
+  trap - ERR TERM INT
+  rollback
+  exit 1
+}
+
 install_one() {  # $1=源(目录) $2=目标路径 $3=备份相对子路径
   local src="$1" dst="$2" relbk="$3"
   mkdir -p "$CLAUDE_DIR/$(dirname "$relbk")" "$BAK_ROOT/restore/$(dirname "$relbk")"
   if path_exists "$dst"; then
+    # I01: 先确认原件备份成功落盘，再登记可恢复替换
+    if ! mv -T -- "$dst" "$BAK_ROOT/restore/$relbk" 2>/dev/null \
+       && ! mv -- "$dst" "$BAK_ROOT/restore/$relbk"; then
+      echo "错误: 备份 $dst 失败 —— 目标未改动，安装中止并回滚。" >&2
+      fail_install
+    fi
     txn_add replaced "$CLAUDE_DIR/$relbk"
-    mv -T -- "$dst" "$BAK_ROOT/restore/$relbk" 2>/dev/null || mv -- "$dst" "$BAK_ROOT/restore/$relbk"
-    mv -T -- "$src" "$CLAUDE_DIR/$relbk"
+    if ! mv -T -- "$src" "$CLAUDE_DIR/$relbk"; then
+      echo "错误: 安装 $dst 失败 —— 回滚。" >&2
+      fail_install
+    fi
   else
     txn_add created "$CLAUDE_DIR/$relbk"
-    mv -T -- "$src" "$CLAUDE_DIR/$relbk"
+    if ! mv -T -- "$src" "$CLAUDE_DIR/$relbk"; then
+      echo "错误: 安装 $dst 失败 —— 回滚。" >&2
+      fail_install
+    fi
   fi
 }
 

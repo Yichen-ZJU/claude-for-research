@@ -44,5 +44,26 @@ HOME=$FH PATH=$FH/bin:/usr/bin:/bin "$REPO/install.sh" < /dev/null > /tmp/t01_c.
 [ $? -ne 0 ] && grep -q "另一安装实例正在运行" /tmp/t01_c.log && ok "C: live lock refused" || bad "C: live lock refused"
 rm -rf $FH
 
+# Scenario D (I01+S3): forced backup-mv failure -> original must survive, explicit rollback, exit 1
+FH=$(mktemp -d); SH=$(mktemp -d)
+mkdir -p $FH/bin $FH/shim "$FH/.claude/skills/intro-drafter"
+printf '#!/usr/bin/env bash\nexit 0\n' > $FH/bin/claude; chmod +x $FH/bin/claude
+echo "original-content" > "$FH/.claude/skills/intro-drafter/SKILL.md"
+cat > $SH/mv <<'INNER'
+#!/usr/bin/env bash
+for a in "$@"; do case "$a" in *backups*restore*) exit 73;; esac; done
+/bin/mv "$@"
+INNER
+chmod +x $SH/mv
+HOME=$FH PATH=$SH:$FH/bin:/usr/bin:/bin "$REPO/install.sh" < /dev/null > /tmp/t01_d.log 2>&1
+rc=$?
+[ $rc -eq 1 ] && ok "D: explicit failure exit 1 (not bare 73)" || bad "D: explicit failure exit 1"
+grep -q "按事务清单回滚" /tmp/t01_d.log && grep -q "回滚完成且已校验" /tmp/t01_d.log \
+  && ok "D: rollback ran with verification" || bad "D: rollback ran with verification"
+grep -q "original-content" "$FH/.claude/skills/intro-drafter/SKILL.md" \
+  && ok "D: original file survived backup failure (I01)" || bad "D: original file survived"
+grep -q "备份.*失败" /tmp/t01_d.log && ok "D: explicit error message" || bad "D: explicit error message"
+rm -rf $FH $SH
+
 echo; echo "installer: $P passed, $F failed"
 exit $([ $F -eq 0 ] && echo 0 || echo 1)
