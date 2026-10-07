@@ -176,17 +176,28 @@ within the idea's lifecycle, the flaw remains fatal.
 After listing flaws and defenses, convert each flaw into a severity
 tag using the following logic.
 
-- **CRITICAL**: the flaw cannot be defended within the idea's lifecycle
-  given current resources, or two or more MAJOR flaws are present.
+- **CRITICAL**: the flaw cannot be defended within the idea's
+  lifecycle given current resources — the constraint is genuinely
+  unsolvable (not merely expensive), and no cheaper reformulation
+  exists within budget. Severity is a property of the flaw itself,
+  never a count of other flaws.
 - **MAJOR**: the flaw requires 2-4 weeks of dedicated work to defend.
 - **MINOR**: the flaw can be addressed in under a week of writing or
   literature work.
 
 Verdict implications:
 
-- **Any CRITICAL flaw**: verdict is Reject and Pivot. Do not proceed
-  with this version of the idea.
-- **Two or more MAJOR flaws**: verdict is Accept with Revisions.
-  Defend all flaws before starting experiments.
-- **At most one MAJOR flaw and any MINOR flaws**: compatible with
-  Strong Accept, subject to other evaluation steps.
+- **Any CRITICAL flaw**: verdict is Reject and Pivot **for the
+  affected claim**. Do not proceed with this version of the idea.
+- **MAJOR flaws (any count)**: verdict is Accept with Revisions.
+  Defend all flaws before starting experiments; whether the defense
+  is worth the current budget is the user's call, made explicit per
+  flaw — MAJORs never escalate to CRITICAL by accumulation.
+- **MINOR flaws only**: compatible with Strong Accept, subject to
+  other evaluation steps.
+
+Why no count escalation: two independently fixable MAJORs are two
+work items, not a fatal condition. Auto-escalation converts
+"multiple solvable problems" into "direction killed", which is the
+structural driver of premature abandonment this rule set exists to
+prevent.

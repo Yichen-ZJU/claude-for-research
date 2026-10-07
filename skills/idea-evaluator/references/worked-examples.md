@@ -3,12 +3,18 @@
 ## Table of contents
 
 1. How to read these examples
-2. Example A: Alpha-SQL (ICML 2025), incremental, Strong Accept
-3. Example B: AFlow (ICLR 2025), cross-domain, Strong Accept
-4. Example C: LEAD (VLDB 2026), new problem, Strong Accept
+2. Example A: Alpha-SQL (ICML 2025), incremental, Strong Accept — retrospective
+3. Example B: AFlow (ICLR 2025), cross-domain, Strong Accept — retrospective
+4. Example C: LEAD (VLDB 2026), new problem, Strong Accept — retrospective
 5. What each example illustrates
 
 ## 1. How to read these examples
+
+These are RETROSPECTIVE evaluations of already-published work. Their
+verdicts use the published outcome as evidence; they are worked examples
+of the scoring mechanics, NOT validated predictions of early-idea success.
+Do not cite them as calibration evidence for the Strong Accept threshold
+(two dimensions at 8+).
 
 Each example below is a retrospective evaluation of a published paper
 as if the idea had been submitted for evaluation at the pre-writing

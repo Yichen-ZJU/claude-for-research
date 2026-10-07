@@ -213,10 +213,17 @@ Before returning the verdict:
    field's recent pace; the user should sanity-check against their
    own knowledge of the subfield before acting on it.
 
-If any [inspection] check fails, downgrade the verdict and mark
-the corresponding output section as "needs user attention". For
-[attestation] bullets, the skill states the check was run and the
-user confirms the result.
+If any [inspection] check fails, do NOT downgrade the verdict:
+insufficient evaluator evidence is the evaluator's limitation, not
+the idea's guilt. Instead: correct the evaluation (re-derive the
+score or flaw from the user's stated material), and if the evidence
+is genuinely unavailable, mark the corresponding judgment as
+"unknown / needs user attention" while keeping the rest of the
+verdict unchanged. A verdict may only be lowered when the
+underlying SCORE or FLAW is revised on evidence, never as a
+shortcut for a failed paperwork check. For [attestation] bullets,
+the skill states the check was run and the user confirms the
+result.
 
 ## Output format
 

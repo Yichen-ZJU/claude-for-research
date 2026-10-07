@@ -18,14 +18,15 @@ argument-hint: <research-question-or-project-dir>
 | 长文档/PDF 精读 | `summarize`、`pdf-explore` |
 | 假设头脑风暴 | `brainstorming-research-ideas`、`creative-thinking-for-research` |
 | 任务包锻造（锁定评估+开放文件） | `experiment-forge` |
-| 内循环实验（改→测→留/滚） | `autoresearch` skill，或直接按 program.md 执行 |
+| 内循环实验（改→测→留/滚） | 小调整/快速迭代 → `autoresearch` skill 或直接按 program.md；无人值守批量 → `experiment-forge` 造包 + autoresearch 执行。深度攻坚/广度撒网引擎（Arbor/AutoScientists）属 Pro 部署；公开版用 forge 造包 + 无人值守接力覆盖 |
+| 后端交接（调用实验引擎时 REQUIRED） | 在 research-state.yaml 显式记录：引擎身份、局部预算与停止标准（autoresearch maxIterations/timeout）、已消耗资源；PIVOT/续跑不重置累计账 |
 | 微调执行 | `peft`、`unsloth`、`llama-factory` |
 | 分布式训练 | `pytorch-fsdp2`、`deepspeed`、`megatron-core`、`accelerate` |
 | 蒸馏/压缩/长上下文 | `knowledge-distillation`、`model-pruning`、`long-context` |
 | 多模态模型 | `clip`、`llava`、`blip-2`、`whisper`、`segment-anything` 等 18 类 |
 | 评测 | `lm-evaluation-harness`、`nemo-evaluator` |
 | 实验追踪 | `weights-and-biases`、`mlflow`、`tensorboard` |
-| 论文写作 | `paper-writing`（流程）+ `ml-paper-writing`（ML 会议 LaTeX 模板） |
+| 论文写作 | 论文成熟走 `paper-production` 总装线；纯排版/单节 → `paper-writing`（流程）+ `ml-paper-writing`（ML 会议 LaTeX 模板） |
 | 图表 | `figure-style`、`figure-composer`、`academic-plotting` |
 | 对抗审查 | `reviewer` agent（via Agent 工具） |
 
@@ -56,6 +57,11 @@ argument-hint: <research-question-or-project-dir>
 ```
 BOOTSTRAP（一次，轻量）
   明确问题 → literature-review 摸底 → 形成初始假设 → 锁定评估标准
+  双闸门（REQUIRED，纪律内联于此；Pro 版有显式 rq-gates 协议文件）：
+  Gate 0（输入模糊才触发，带证据引导的方向选择）；Gate 1（必过：FINER
+  五维 + scope 边界 + 方法论蓝图 + 魔鬼代言人 checkpoint），PASS 前不
+  进内循环。已有明确输入/已有结果时 Gate 0 不触发，写作任务不重新否决
+  课题。
 
 INNER LOOP（快，自主，重复）
   选最高优先级假设 → 写 protocol → 先 commit 再跑 → 测量 → 记录 → 学习
@@ -66,9 +72,15 @@ OUTER LOOP（周期性反思，每 5-10 个实验或察觉模式时）
   聚类结果 → 问 WHY → 更新 findings.md → 必要时回文献 → 产新假设
   → 方向决策：DEEPEN（深挖机制，子假设 H1.1）/ BROADEN（拓新问题）
               / PIVOT（假设被证伪，回 BOOTSTRAP）/ CONCLUDE（证据足够，写论文）
+  → 诊断→改动→再验证：诊断发现可修复问题（测量失灵/实现错误/单候选
+     无效）时，默认路由是"落实一次方法改动 → 再验证改动"，不是直接
+     PIVOT。裁决范围必须落在具体对象上（见下方"裁决范围表"），
+     禁止升级为方向击杀。
 
 FINALIZE
-  paper-writing + ml-paper-writing 写论文 → 最终进展报告 → 归档
+  论文成熟（见收尾标准）→ `paper-production` 总装线（Stage 1.5 起直接
+  复用本项目的叙事主线与 findings.md；纯排版/单节任务可直走
+  paper-writing + ml-paper-writing）→ 最终进展报告 → 归档
 ```
 
 内外循环没有刚性边界 —— 节奏由你判断。研究是非线性的：结果意外就回文献（存 `literature/`），卡死就头脑风暴，问题本身错了就 PIVOT。
@@ -91,6 +103,21 @@ FINALIZE
   delta 模糊 → 才进入 PIVOT 分支。
 - 一句话决策规则：**有近邻 → 写 delta 声明并继续；要证明的现象还不存在 → 才需要空白证明。**
 
+## 裁决范围表（refuted 的永远是具体对象，不是方向）
+
+| 实际发生的事 | 应影响的对象 | 下一步 |
+|---|---|---|
+| 测量方案失灵或灵敏度不足 | 本次测量的有效性（hypothesis 状态记 inconclusive） | 修复或替换测量；**假设保持未决**，产出测量改进计划 |
+| 实现错误或方法未真正启用 | 当前实现 | 修复并做代表性检查（arbor-agent-executor / autoresearch 已有此规则），再评估 |
+| 有效评估下一个候选没有改善 | 该候选及对应条件 | 预算内修改方法或换候选，**保留当前最佳** |
+| 有效证据反驳某项主张 | 被检验的具体主张（该子假设记 refuted） | 收窄或放弃该主张；检查是否真触及核心构想——未触及则核心假设保持 |
+| 累计预算耗尽 | 当前研究运行 | 交付结果与状态，停止；**不自动宣称方向为假** |
+
+research-state.yaml 的 supported / refuted / inconclusive 字段承担全部
+状态语义：refuted 只写给具体子假设或候选，根假设只有在其核心可检验
+主张全部被有效证据反驳时才 refuted。测量失败一律记 inconclusive
+（测量对象），不记 refuted（假设对象）。
+
 ## findings.md 是项目记忆
 
 每次会话/循环开始先读它。每次外循环后更新四个问题：我们知道什么？什么模式解释了结果？哪些坑不要再踩（Lessons and Constraints，如"wd>0.1 在这个 scale 发散"）？还有什么 open？
@@ -107,9 +134,16 @@ FINALIZE
 
 有意义就产（外循环发现模式、轨迹明显上升、PIVOT、收尾前）：研究问题、关键结果+图、优化轨迹曲线、试了哪些（精选）、当前理解、下一步。用 `templates/progress-presentation.html` 起步，写到 `to_human/`。
 
-## 收尾标准（三问全 yes 才 CONCLUDE）
+## 收尾标准（研究终止与论文成熟分离）
 
-有一个强支持的发现？能解释 WHY 它 work？findings.md 能撑起有说服力的 abstract？
+**研究可以结束的条件（任一即满足，不必三问全 yes）**：累计预算耗尽 /
+当前实现持续未改善且已按裁决范围表排除实现因素 / 核心问题仍未决但
+资源用尽。此时交付：代码与结果、research-state 与 findings、已成立与
+未决清单 —— 停止，不自动宣称方向为假，也不为结束而补机制故事。
+
+**论文成熟（更严的标准，只决定"是否值得写论文"）**：有一个强支持的
+发现？能解释 WHY 它 work？findings.md 能撑起有说服力的 abstract？未
+成熟也可交付上述研究产物，只是不进入 FINALIZE。
 
 阴性结果的连贯集合也是可发表的贡献："X 不 work 因为 Y"。
 
