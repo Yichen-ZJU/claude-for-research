@@ -8,7 +8,8 @@
 
 | 级别 | 定义 | 能支撑什么 |
 |---|---|---|
-| `full-text` | 论文/文档全文经 MCP 后端取得并定位到原文段落 | 承重声明（load-bearing claims）、数值复现、方法细节对比 |
+| `full-text` | 论文/文档全文取得并定位到原文段落（通道不限：MCP 或 WebFetch 完整 HTML） | 承重声明（load-bearing claims）、数值复现、方法细节对比 |
+| `full-text-web` | 完整、版本固定的官方 HTML（如 arXiv HTML 版）经 WebFetch 取得，原段可定位 | 同 full-text（provenance 标注通道为 web） |
 | `fragment` | 摘要、HTML 正文片段、官方文档页、搜索摘要 | 方向性判断、背景叙述、非关键引用 |
 | `metadata` | 标题/作者/日期/引用数等书目元数据 | 存在性声明、相关工作枚举 |
 | `unverified` | 单次检索未命中或来源冲突 | 什么都不能支撑，只能作为待查线索 |
@@ -31,11 +32,15 @@
 2. **alphaxiv MCP**（`get_paper_content` / `answer_pdf_queries`）：
    增强路径，尤其适合 PDF 问答与代码仓库。失效特征 401/403/连接错，
    **不重试，直接降级**。
-3. **降级路径**（只能产出 fragment 级证据，承重声明需标注
-   `unverified-fulltext` 并回主代理升级）：
-   - WebFetch arXiv HTML/abs 页（不要 WebFetch 裸 `.pdf` URL——历史
-     上 PDF 抓取在本工作流中是崩溃源，元数据里引用 PDF URL 即可）；
-   - WebSearch 摘要与官方文档页。
+3. **WebFetch 路径**（按内容分级，不按通道惩罚）：
+   - **完整、版本固定的官方 HTML**（如 arXiv HTML 版全文）→ `full-text-web`
+     级，与 full-text 同级使用，provenance 标注通道为 web；承重声明可
+     直接使用，不必标 `unverified-fulltext`。
+   - **摘要页/abs 页/搜索摘要** → fragment 级，承重声明仍需升级。
+   - **裸 `.pdf` URL 仍禁止 WebFetch**（历史崩溃事故，限制保留不动摇）；
+     只有 PDF 版本时引用其 URL 并在 provenance 标注，转走 MCP 全文路径。
+   - 证据的资格标准是"来源可靠 + 内容完整 + 版本固定 + 原段可定位"，
+     获取通道（MCP / WebFetch）本身不构成降级理由。
 
 ## 子代理约束
 
