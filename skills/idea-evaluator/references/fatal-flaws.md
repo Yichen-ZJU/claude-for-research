@@ -27,10 +27,15 @@ required.
 
 ## 2. Ten canonical fatal flaws
 
-### F1: No novelty versus the closest prior work
+### F1: No clear increment over the nearest prior work
 
-The idea replicates or barely varies a published baseline in the same
-subfield. Reviewers frame this as "dominated by prior work X".
+The idea cannot state what it adds over its single closest neighbor.
+Note the bar is an INCREMENT, not domination: combining two existing
+methods, migrating a method to a new setting, filling a missing
+baseline, or supplying a mechanism story are all legitimate delta types
+(see the skill's 'Neighbors are not a veto' section). F1 triggers only
+when no delta at all can be articulated — 'we use a bigger model' with
+no further claim is the canonical case.
 
 ### F2: Wrong venue fit
 
@@ -90,9 +95,12 @@ Reviewers flag this as overclaiming.
 ### F1 detection
 
 - Ask: what does this idea add over the single closest prior work?
-- Red flag: the student cannot name a specific contribution in one
-  sentence, or the contribution is "we use a bigger model" or "we
-  combine two existing methods".
+- Red flag: the student cannot name what the idea adds over its
+  nearest neighbor in one sentence, or the only claim is "we use a
+  bigger model" with no accompanying mechanism, setting, or evidence
+  angle. ("We combine methods A and B" is NOT by itself a red flag —
+  it must be paired with a reason the combination works where either
+  alone falls short.)
 
 ### F2 detection
 
@@ -160,7 +168,7 @@ within the idea's lifecycle, the flaw remains fatal.
 
 | Flaw | Defense |
 |---|---|
-| F1 | Position against the closest prior work in one sentence. Name a specific axis on which the new idea dominates |
+| F1 | Position against the closest prior work in one sentence: name the delta (combination / new setting / missing baseline / mechanism) and why it holds |
 | F2 | Either switch the venue target to match the contribution type, or reshape the contribution to fit the original venue |
 | F3 | Identify the latest state-of-the-art and add it as the primary baseline. If unavailable, document the recency cutoff and justify |
 | F4 | Name a concrete external beneficiary (a user, a deployed system, a policy question) in the first paragraph of the Introduction |

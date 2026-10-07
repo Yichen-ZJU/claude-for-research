@@ -12,12 +12,18 @@
 
 ## 1. Abstract
 
-Five-sentence formula.
+The abstract's fixed duty is information, not a sentence count: the
+problem, the contribution, the core insight or method, and the strongest
+evidence must all be findable. The five-sentence formula below is one
+default shape for technique papers — not a cross-type blocker; theory
+papers may open with the result's meaning, benchmark papers with why
+existing metrics cannot answer the question (see the shared narrative
+plan). Do not fail a draft for having another valid structure.
 
 | Sentence | Content |
 |---|---|
 | 1 | What problem does the paper solve? Context plus significance |
-| 2 | Why is it worth solving? Nobody has done it, or existing methods fail |
+| 2 | Why is it worth solving? Name the concrete constraint, tradeoff, or question where existing work still leaves a testable increment — do NOT require "nobody has done it", which pushes incremental contributions into false novelty claims |
 | 3 | What are the challenges? Must be concrete; challenges of the problem, not of the method |
 | 4 | How is the problem solved? Method name and the key components, matched to the challenges |
 | 5 | How well does the method perform? Real datasets, concrete numbers, code link if available |

@@ -280,9 +280,9 @@ Figure 1 deserves special attention—many readers skip directly to it.
 - Write captions that stand alone without main text
 - Ensure readability in black-and-white (8% of men have color vision deficiency)
 
-**Step 3: Write Abstract (5-Sentence Formula)**
+**Step 3: Write Abstract (information duty; formula is one shape)**
 
-From Sebastian Farquhar (DeepMind):
+From Sebastian Farquhar (DeepMind) — a proven default, not a mandate:
 
 ```
 1. What you achieved: "We introduce...", "We prove...", "We demonstrate..."
@@ -291,6 +291,11 @@ From Sebastian Farquhar (DeepMind):
 4. What evidence you have
 5. Your most remarkable number/result
 ```
+
+Other valid structures (challenge->contribution, challenge->insight->
+contribution, multi-contribution) are equally acceptable when they
+deliver the same information duty: problem, contribution, insight/method,
+evidence. Sentence count is never the target.
 
 **Delete** generic openings like "Large language models have achieved remarkable success..."
 

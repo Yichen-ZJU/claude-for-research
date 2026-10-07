@@ -32,7 +32,7 @@ Introduce the technical challenge, then use one to two sentences to present the 
 ### Expert Notes
 
 1. Discuss previous work around the technical challenge that we actually solve.
-2. For the contribution sentence(s), usually mention the technical term/name only; do not explain every detailed step.
+2. For the contribution sentence(s), name the technical term AND give one reader-comprehensible clause about the core operation or insight — a name alone is not an explanation; do not detail every step.
 3. The technical term must be easy to understand; readers should not feel a jump.
 4. This ability is very important for writing a good abstract.
 
@@ -57,7 +57,7 @@ Introduce the technical challenge, then use one to two sentences to present the 
 
 1. Discuss previous work around the technical challenge that we actually solve.
 2. Introduce the insight in one clear sentence.
-3. For the implementation sentence(s), usually mention the technical term/name only; do not explain every detailed step.
+3. For the implementation sentence(s), same rule: one comprehensible clause about what the mechanism does; the name may follow, not substitute.
 4. The technical term must be easy to understand; do not create a jump in reading.
 5. This ability is very important for writing a good abstract.
 
