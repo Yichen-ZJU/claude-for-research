@@ -19,6 +19,7 @@ argument-hint: <research-question-or-project-dir>
 | 假设头脑风暴 | `brainstorming-research-ideas`、`creative-thinking-for-research` |
 | 任务包锻造（锁定评估+开放文件） | `experiment-forge` |
 | 内循环实验（改→测→留/滚） | 小调整/快速迭代 → `autoresearch` skill 或直接按 program.md；无人值守批量 → `experiment-forge` 造包 + autoresearch 执行。深度攻坚/广度撒网引擎（Arbor/AutoScientists）属 Pro 部署；公开版用 forge 造包 + 无人值守接力覆盖 |
+| 授权下传（调用任何子技能时 REQUIRED） | orchestrator 已批准的 scope、预算、环境、恢复意图视为已授权并显式传给子技能；子技能在授权下只对新增实质性选择提问，不重复确认（autoresearch Step 1-3、forge 逐项确认在授权下跳过） |
 | 后端交接（调用实验引擎时 REQUIRED） | 在 research-state.yaml 显式记录：引擎身份、局部预算与停止标准（autoresearch maxIterations/timeout）、已消耗资源；PIVOT/续跑不重置累计账 |
 | 微调执行 | `peft`、`unsloth`、`llama-factory` |
 | 分布式训练 | `pytorch-fsdp2`、`deepspeed`、`megatron-core`、`accelerate` |
