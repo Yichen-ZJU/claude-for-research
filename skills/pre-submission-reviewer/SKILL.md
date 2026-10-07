@@ -57,10 +57,19 @@ Self-contained rule, Leading Text rule, and Running Example rule.
 
 Check:
 
+- **Read the shared narrative plan first** (`outputs/.plans/<slug>.md`,
+  written by paper-narrative): judge the paper against its declared
+  mainline and contribution type, not against one fixed template.
 - Introduction flowchart is intact (Background, Limitations, Goal
-  or Key Idea, Challenges, Methodology, Contributions).
-- Contributions map one-to-one with methodology modules and with
-  section numbers.
+  or Key Idea, Challenges, Methodology, Contributions) — **for
+  technique/system papers**. Theory papers: intro must state the
+  recognized gap the result closes and the result's meaning before
+  technicalities. Benchmark papers: intro must justify why existing
+  metrics cannot answer the target question. Section count per se is
+  never a finding.
+- Contributions map to what actually delivers them — modules and
+  section numbers for system papers; theorems/proofs for theory papers;
+  the measurement construction and validation for benchmark papers.
 - Experiments validate the paper's main claims, not tangential
   ones.
 - Related Work covers the necessary prior art.

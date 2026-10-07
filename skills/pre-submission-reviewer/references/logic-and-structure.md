@@ -107,8 +107,12 @@ framework laid out in the Introduction:
 Inconsistency between sections is among the most common review
 findings. Check that every module name in the Introduction appears
 verbatim as a subsection title in the Methodology. Check that
-every contribution cited in the Introduction has a corresponding
-experiment that validates it.
+every contribution cited in the Introduction has evidence that can
+bear its weight — an experiment for empirical claims, a proof for
+theoretical ones, measurement-validation for benchmark claims. The
+evidence type follows the contribution type (see the shared narrative
+plan in outputs/.plans/<slug>.md); do not demand experiments for
+theorem-only or benchmark-only contributions.
 
 ## 7. Failure patterns
 

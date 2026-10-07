@@ -36,7 +36,7 @@ argument-hint: <topic-or-results-dir> [--venue <venue>] [--type technique|benchm
 
 ### Stage 2 — Introduction
 
-调 `intro-drafter`：从结构化 Flowchart 产六段大纲（背景+running example → 现有局限 → 问题本质与目标 → 关键挑战 → 方案总览 → 贡献列表），贡献与挑战对齐。
+调 `intro-drafter`（其 Step 0 先对接 Stage 1.5 的叙事计划；注意 intro-drafter 不适用于 benchmark 论文——benchmark 类型改用 `benchmark-paper-template` 自带的六段 Introduction 逻辑链，同样服从 Stage 1.5 主线）：从结构化 Flowchart 产六段大纲（背景+running example → 现有局限 → 问题本质与目标 → 关键挑战 → 方案总览 → 贡献列表），贡献与挑战对齐。
 
 **质量门**：六段逻辑链能一口气讲通；每段都能在骨架里找到对应。
 

@@ -103,7 +103,11 @@ Tense: past.
 Setup requirements:
 
 - Experimental goals stated first.
-- At least three datasets.
+- Dataset coverage appropriate to the claim: multi-dataset evidence for
+  broad generalization claims; a single well-justified dataset or suite
+  is acceptable when the claim is narrower — say so explicitly.
+  (Theory-only papers: no dataset requirement; benchmark papers: the
+  benchmark itself plus the saturation comparison.)
 - Evaluation metrics named and justified.
 - Baselines selected carefully; obvious baselines must not be
   omitted. If the paper cites work proving A beats B and C, only A
