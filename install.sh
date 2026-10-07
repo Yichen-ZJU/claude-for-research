@@ -188,6 +188,47 @@ trap - ERR TERM INT
 rm -rf "$LOCK"
 
 if $WITH_MCP; then
+  # stdio MCP 工具级探测：spawn 服务进程，initialize + tools/list，要求工具非空
+  arxiv_stdio_probe() {
+    python3 - "$1" <<'PYPROBE'
+import json, subprocess, sys, time
+bin_path = sys.argv[1]
+try:
+    proc = subprocess.Popen([bin_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+except Exception:
+    sys.exit(1)
+deadline = time.time() + 15  # 覆盖 initialize 阶段（I02: 所有读取有界）
+def send(obj):
+    proc.stdin.write(json.dumps(obj) + "\n"); proc.stdin.flush()
+def recv():
+    import select
+    ready, _, _ = select.select([proc.stdout], [], [], max(0.1, deadline - time.time()))
+    if not ready:
+        return {}
+    line = proc.stdout.readline()
+    return json.loads(line) if line.strip() else {}
+try:
+    send({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}})
+    recv()
+    send({"jsonrpc":"2.0","method":"notifications/initialized","params":{}})
+    send({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}})
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        msg = recv()
+        if not msg: break
+        if msg.get("id") == 2:
+            tools = msg.get("result", {}).get("tools", [])
+            sys.exit(0 if tools else 1)
+    sys.exit(1)
+except Exception:
+    sys.exit(1)
+finally:
+    try: proc.kill()
+    except Exception: pass
+PYPROBE
+  }
+
+
   # ---- 论文检索后端 1：arxiv MCP（本机 arxiv-mcp-server，默认后端，无 key 依赖）----
   echo "==> 配置 arxiv MCP server（论文检索主后端，工具前缀 mcp__arxiv__）"
   if claude mcp list 2>/dev/null | grep -q "^arxiv:"; then
@@ -218,41 +259,6 @@ if $WITH_MCP; then
     echo "    未找到 ~/.local/bin/arxiv-mcp-server，跳过。安装：pip install arxiv-mcp-server（或 uv tool install arxiv-mcp-server）"
     STATUS_MCP_ARXIV=skipped
   fi
-
-  # stdio MCP 工具级探测：spawn 服务进程，initialize + tools/list，要求工具非空
-  arxiv_stdio_probe() {
-    python3 - "$1" <<'PYPROBE'
-import json, subprocess, sys, time
-bin_path = sys.argv[1]
-try:
-    proc = subprocess.Popen([bin_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-except Exception:
-    sys.exit(1)
-def send(obj):
-    proc.stdin.write(json.dumps(obj) + "\n"); proc.stdin.flush()
-def recv():
-    line = proc.stdout.readline()
-    return json.loads(line) if line.strip() else {}
-try:
-    send({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}})
-    recv()
-    send({"jsonrpc":"2.0","method":"notifications/initialized","params":{}})
-    send({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}})
-    deadline = time.time() + 10
-    while time.time() < deadline:
-        msg = recv()
-        if not msg: break
-        if msg.get("id") == 2:
-            tools = msg.get("result", {}).get("tools", [])
-            sys.exit(0 if tools else 1)
-    sys.exit(1)
-except Exception:
-    sys.exit(1)
-finally:
-    try: proc.kill()
-    except Exception: pass
-PYPROBE
-  }
 
   # ---- 论文检索后端 2：alphaxiv MCP（可选增强后端，注册前探测 key 有效性）----
   echo "==> 配置 alphaxiv MCP server（可选增强后端：语义搜索/PDF 问答/GitHub 代码）"

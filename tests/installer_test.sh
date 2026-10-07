@@ -65,5 +65,32 @@ grep -q "original-content" "$FH/.claude/skills/intro-drafter/SKILL.md" \
 grep -q "备份.*失败" /tmp/t01_d.log && ok "D: explicit error message" || bad "D: explicit error message"
 rm -rf $FH $SH
 
+# Scenario E (I02): probe defined-before-use + bounded read — healthy fake server
+# must be reported as probe-PASSED (previously the function was called before
+# its definition and every probe silently FAILED).
+FH=$(mktemp -d); mkdir -p $FH/bin $FH/.local/bin
+cat > $FH/bin/claude <<'INNER'
+#!/usr/bin/env bash
+if [ "${1:-}" = "mcp" ] && [ "${2:-}" = "list" ]; then echo "arxiv: stdio - fake"; exit 0; fi
+exit 0
+INNER
+chmod +x $FH/bin/claude
+cat > $FH/.local/bin/arxiv-mcp-server <<'INNER'
+#!/usr/bin/env python3
+import json, sys
+for line in sys.stdin:
+    try: msg = json.loads(line)
+    except: continue
+    if msg.get("method") == "initialize":
+        print(json.dumps({"jsonrpc":"2.0","id":msg["id"],"result":{"protocolVersion":"2024-11-05","capabilities":{},"serverInfo":{"name":"fake","version":"0"}}}), flush=True)
+    elif msg.get("method") == "tools/list":
+        print(json.dumps({"jsonrpc":"2.0","id":msg["id"],"result":{"tools":[{"name":"search_papers"}]}}), flush=True)
+INNER
+chmod +x $FH/.local/bin/arxiv-mcp-server
+HOME=$FH PATH=$FH/bin:/usr/bin:/bin "$REPO/install.sh" --with-mcp < /dev/null > /tmp/t01_e.log 2>&1
+grep -q "已注册且工具级探测通过" /tmp/t01_e.log \
+  && ok "E: stdio probe executes and passes on healthy server (I02)" || bad "E: stdio probe executes and passes"
+rm -rf $FH
+
 echo; echo "installer: $P passed, $F failed"
 exit $([ $F -eq 0 ] && echo 0 || echo 1)
