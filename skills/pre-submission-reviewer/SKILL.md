@@ -163,8 +163,12 @@ guides for Abstract, Introduction, Problem Formulation, Framework
 or Method, Experiments, Related Work, and Conclusion.
 
 For each section, check that the section's content matches the
-guide's canonical structure (for example, Abstract's five-sentence
-formula: what, why, challenges, how, results).
+guide's canonical structure **as conditioned by the shared narrative plan
+and contribution type** (read outputs/.plans/<slug>.md first): the
+canonical forms (e.g. Abstract's what/why/challenges/how/results) are
+defaults for technique papers, not cross-type blockers — theory papers
+lead with the gap closed and the result's meaning; benchmark papers lead
+with why existing metrics cannot answer the target question.
 
 ### Step 8: Integrity gate
 

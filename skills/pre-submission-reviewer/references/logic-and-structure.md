@@ -118,7 +118,7 @@ theorem-only or benchmark-only contributions.
 
 | Pattern | Detection | Severity |
 |---|---|---|
-| Broken flowchart (Introduction) | One of the six paragraphs missing | CRITICAL |
+| Broken flowchart (Introduction) | A required argumentative FUNCTION is missing (problem, gap, goal, challenge, solution, contributions — per the paper type; see the shared plan in outputs/.plans/<slug>.md). Paragraph COUNT itself is never a finding | CRITICAL |
 | Orphan contribution | Contribution has no section | CRITICAL |
 | Running example abandoned after Introduction | Search the Methodology and Experiments for the example; not found | MAJOR |
 | Leading text missing | A section or subsection opens with a dense paragraph | MAJOR |
