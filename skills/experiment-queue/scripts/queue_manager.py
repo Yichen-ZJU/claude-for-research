@@ -362,24 +362,27 @@ def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook):
     cmd = job["cmd"]
     # Substitute GPU placeholder if present
     cmd_with_gpu = cmd.replace("${GPU}", str(gpu))
-    # H3: the user command runs in its OWN subshell, so a user-level
-    # `exit 0` cannot skip the marker write; the outer shell always
-    # captures the real exit code. The marker is published via
-    # tmp-file + rename (atomic on same filesystem), and is written
-    # even when cd/conda/activate fails (captured as nonzero).
+    # H3 + E04: the user command runs in its OWN INNER subshell, so its
+    # `;`-separated statements stay inside the && chain (a bare
+    # `activate && a; b` would still run b when activate fails) and a
+    # user-level `exit 0` cannot skip the marker write. The WHOLE outer
+    # `exit 0` cannot skip the marker write), and the WHOLE brace group —
+    # subshell, marker publish — is piped to tee INSIDE the bash -c, so
+    # the session's stdout/stderr actually reach the per-attempt log
+    # (tee outside `screen -dmS ... bash -c` only captured the launcher's
+    # empty output and broke OOM detection). The outer shell always
+    # captures the real exit code from the subshell; the marker is
+    # published via tmp-file + rename (atomic on same filesystem) and is
+    # written even when cd/conda/activate fails (captured as nonzero).
     full = (
-        f'( cd {shlex.quote(cwd)} && {conda_hook} && '
+        f'{{ ( cd {shlex.quote(cwd)} && {conda_hook} && '
         f'conda activate {conda_env} && '
-        f'CUDA_VISIBLE_DEVICES={gpu} {cmd_with_gpu} ); '
-        f'ec=$?; echo $ec > {shlex.quote(exit_tmp)}; '
+        f'( CUDA_VISIBLE_DEVICES={gpu} {cmd_with_gpu} ) ); ec=$?; '
+        f'echo $ec > {shlex.quote(exit_tmp)}; '
         f'mv -f {shlex.quote(exit_tmp)} {shlex.quote(exit_file)}; '
-        f'exit $ec'
+        f'exit $ec; }} 2>&1 | tee {shlex.quote(log_file)}'
     )
-    # tee lives OUTSIDE bash -c so $ec inside is the command's real code
-    screen_cmd = (
-        f'screen -dmS {screen_name} bash -c {shlex.quote(full)} '
-        f'2>&1 | tee {shlex.quote(log_file)}'
-    )
+    screen_cmd = f'screen -dmS {screen_name} bash -c {shlex.quote(full)}'
     run(screen_cmd)
     # Brief pause so `ps` sees the child for the pid probe; the pid is
     # informational only (status comes from the marker/screen).
