@@ -49,7 +49,7 @@ argument-hint: <topic-or-results-dir> [--venue <venue>] [--type technique|benchm
 
 ### Stage 4 — 初稿
 
-走 `paper-writing` 工作流：`writer` agent 按 Stage 1.5 的叙事计划从研究文件起草（不编造结果，缺证据留 TODO）→ `verifier` agent 逐条加引用、核验 URL、删无源声明。
+走 `paper-writing` 工作流（交接时声明任务类型 paper——writer/verifier 契约区分简报与论文，论文的证据台账/删改记录独立落盘不进正文）：`writer` agent 按 Stage 1.5 的叙事计划从研究文件起草（不编造结果，缺证据留 TODO）→ `verifier` agent 逐条加引用、核验 URL、删无源声明。
 排版模板：ML 会议（NeurIPS/ICML/ICLR/ACL/AAAI/COLM）用 `ml-paper-writing` 的 LaTeX 模板；系统会议（OSDI/SOSP/ASPLOS/NSDI）用 `systems-paper-writing`。
 **文笔**：段落和句子层面遵循 `research-paper-writing`（彭思达方法论：一段一信息、首句点题、句间流转），各节 prose 指导读它的 `references/{abstract,introduction,related-work,method,experiments,conclusion}.md`。若 `outputs/style-profile-<author>.md` 存在（由 `style-calibration` 建立），writer 起草时把它作为软约束贴合作者声纹。
 
@@ -58,7 +58,7 @@ argument-hint: <topic-or-results-dir> [--venue <venue>] [--type technique|benchm
 ### Stage 5 — 双审查（两个都要过）
 
 1. **证据严谨** → `reviewer` agent：FATAL/MAJOR/MINOR，unsupported claims、zombie sections、单源关键声明。FATAL 必须修，修完再审一轮。
-2. **写作品味** → `pre-submission-reviewer`：宏观逻辑/写作细节/语法/LaTeX/图质量 + AI 腔词汇 + 破折号滥用。段落流畅度存疑时，用 `research-paper-writing` 的 Paragraph Clarity Check（外部读者视角 + reverse outlining）复核。
+2. **写作品味** → `pre-submission-reviewer`（叙事力度遵循 `anti-defensive-writing`：贡献先行、必要 trade-off 准确交代、不选择性隐藏证据）：宏观逻辑/写作细节/语法/LaTeX/图质量 + AI 腔词汇 + 破折号滥用。段落流畅度存疑时，用 `research-paper-writing` 的 Paragraph Clarity Check（外部读者视角 + reverse outlining）复核。
 
 **质量门**：无 FATAL、无 CRITICAL；MAJOR 已修或显式记录为 known limitation。
 

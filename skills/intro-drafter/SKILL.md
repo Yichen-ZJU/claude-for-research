@@ -29,7 +29,10 @@ Introduction, so the logical throughline has to be airtight.
 
 This skill takes a small set of inputs (research area, limitations,
 hard constraints, key idea, challenges, solution overview) and
-produces a six-paragraph outline with an explicit purpose and writing
+produces a six-paragraph outline — the six paragraphs are the DEFAULT
+shape for technique papers, not a mandate: paragraphs may merge, split,
+or map many-to-many to challenges and modules when the paper's logic
+demands it (see Step 0 narrative plan and paper-type positioning) with an explicit purpose and writing
 points for every paragraph, plus a positioning as Technique Paper or
 New Problem/Setting Paper. It enforces the rule that contributions
 align one-to-one with challenges, and that every claim has a section
@@ -183,8 +186,11 @@ comparing sections). No user-side attestation required.
 
 Before returning the outline:
 
-1. **[inspection]** Running example named in Paragraph 1 reappears
-   in Paragraph 5 or 6 (or the Case Study forecast).
+1. **[inspection]** The six argumentative functions (background,
+   limitations, goal, challenges, solution, contributions) are each
+   delivered somewhere in the Intro; the running example, if used,
+   reappears in Paragraph 5/6 or the case-study forecast. Paragraph
+   COUNT is never checked.
 2. **[inspection]** Limitations (Paragraph 2) are at most three and
    each is specific to a named prior work or a named capability.
 3. **[inspection]** Challenges (Paragraph 4) are at most three and

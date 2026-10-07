@@ -44,7 +44,7 @@ Columns:
 - Within one iteration, each execution phase gets its OWN file —
   overwriting a log mid-iteration destroys the evidence chain:
   - `run-<N>.log` — the primary run;
-  - `run-<N>-confirm.log` — min_delta confirmation re-runs (§6);
+  - `run-<N>-confirm<K>.log` — min_delta confirmation re-runs, K = 1, 2 (§6); each re-run keeps its own file;
   - `run-<N>-fix<K>.log` — crash-fix attempts, K = 1, 2, 3 (§4).
 - Redirect everything: `cmd > run-<N>...log 2>&1`; tee/direct output is
   forbidden (context explosion).

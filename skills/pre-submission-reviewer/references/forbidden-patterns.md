@@ -38,6 +38,12 @@ code sample or preserved quotation.
 
 ## 2. Banned AI-tone vocabulary
 
+检查对象是**准确度，不是词频**：一个词出现在文里不是错，错的是它
+传达的能力、比较范围或证据强于实际。空泛 hype（revolutionary、
+groundbreaking）改成具体发现；有数据支持的 exceeds/surpasses 直接
+写清超过谁、在哪个指标、什么设置；确实偏好少用某些词时按风格执行，
+不升级为研究严重性问题。下面词表是线索清单，不是自动判罚器。
+
 The following vocabulary signals AI-authored or AI-assisted prose
 to experienced reviewers and should be avoided. Seeing three or
 more uses in a paper is a MAJOR finding.

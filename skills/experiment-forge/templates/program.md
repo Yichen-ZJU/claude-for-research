@@ -81,7 +81,7 @@ LOOP up to <MAX_ITERATIONS (default 50)> iterations and within <TIMEOUT, e.g. 12
 1. Check git state (current branch/commit).
 2. Modify `<OPEN_FILE>` with one experimental idea.
 3. git commit.
-4. Run: `<RUN_COMMAND> > run-<N>.log 2>&1` (redirect everything — do NOT use tee or flood your context). Each re-execution within the same iteration gets its own file: confirmation runs use `run-<N>-confirm.log`, crash-fix attempts use `run-<N>-fix1.log`, `run-<N>-fix2.log`, ... — never reuse the primary log.
+4. Run: `<RUN_COMMAND> > run-<N>.log 2>&1` (redirect everything — do NOT use tee or flood your context). Each re-execution within the same iteration gets its own file: confirmation runs use `run-<N>-confirm1.log`, `run-<N>-confirm2.log`, crash-fix attempts use `run-<N>-fix1.log`, `run-<N>-fix2.log`, ... — never reuse the primary log.
 5. Read results: `grep "^<METRIC_NAME>:\|^<RESOURCE_METRIC>:" run-<N>.log`.
 6. If grep is empty, the run crashed: `tail -n 50 run-<N>.log` for the stack trace. Easy fix (typo, missing import) → fix and re-run. Runtime error → up to 3 automatic fix attempts. Still broken → log `crash`, `git revert HEAD --no-edit` (crashes always end in a revert), move on.
 7. **Guard** (if `<GUARD_COMMAND>` configured): run it every iteration; on failure revert regardless of metric and record `guard-fail`.

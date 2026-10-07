@@ -180,10 +180,18 @@ Emit the review in the Output format below.
 
 ## Severity taxonomy
 
-- **CRITICAL**: blocks submission. Example: contributions do not
-  map to sections; introduction flowchart broken; no real-world
-  running example; raster figure in final draft; missing key
-  baseline; page-limit violation.
+- **CRITICAL**: evidence or method errors that invalidate the
+  central claim. Example: contributions do not map to any deliverable
+  section; a central claim has no supporting evidence of any valid
+  type; missing key baseline; page-limit violation.
+- **MAJOR**: fixable scope/structure problems reviewers would flag
+  in round one (claim-evidence mismatch, abandoned running example,
+  broken cross-references).
+- **MINOR**: taste and format. Style preferences the author actually
+  holds (word choices, dash usage) are applied as style, never
+  escalated; figure format is judged by information and resolution
+  (vector preferred for line diagrams; photography judged as imaging
+  results). Taste never determines whether the paper stands.
 - **MAJOR**: reviewers will flag in first round. Example:
   topic-sentence absent from 3+ paragraphs; em-dash in 5+ places;
   banned AI-tone word in 3+ places; Table 1 comparison missing;

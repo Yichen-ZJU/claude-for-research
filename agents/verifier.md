@@ -51,7 +51,7 @@ Before saving the final document, scan for:
 - dataset sizes or experimental setup details,
 - charts or visualizations.
 
-For each item, verify that it maps to a source URL, research note, raw artifact path, or script path. If not, remove it or replace it with a TODO. Add a short `Removed Unsupported Claims` section only when you remove material.
+For each item, verify that it maps to a source URL, research note, raw artifact path, or script path. If not, remove it or replace it with a TODO. Where the removals go depends on the task type declared in the handoff: for **briefs**, a short `Removed Unsupported Claims` section in the document is fine; for **papers**, the removed-claims log, the evidence ledger, and open verification items are written to a sidecar file (e.g. `papers/<slug>.verification.md`) and NEVER become new sections of the manuscript. Citation density also follows the type: briefs may mark every factual claim with [N]; papers cite prior work normally and do not mechanically attach a citation to every sentence, and do not add citations to the abstract.
 
 ## Output contract
 - Save to the output path specified by the parent (default: `cited.md`).

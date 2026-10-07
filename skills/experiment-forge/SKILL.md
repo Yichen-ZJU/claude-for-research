@@ -19,7 +19,9 @@ argument-hint: <task-description>
 
 名字按任务实际调整（比如 `evaluate.py`/`model.py`），但 **锁定/开放/指令 三件套不可缺**。
 
-## 任务契约（Forge 时必须逐项和用户确认）
+## 任务契约（Forge 时一次确认；被 orchestrator 调用则视为已授权）
+
+逐项确认**一次完成**（一条消息列全），不逐条追问；被 research-orchestrator 调用时视为上游已授权（BOOTSTRAP 双闸门），直接采用 state 里的 scope/预算/环境，只对**新增实质性选择**（预算扩张、权限变化、评估口径改变）提问。
 
 1. **固定 wall-clock 预算**：每次实验跑固定时长（如 5 分钟/30 分钟），不按 step/epoch —— 否则 agent 换大模型就"作弊"赢了。
 2. **架构无关指标**：指标必须对架构改动公平（karpathy 用 val_bpb 而非 loss，因为 loss 随 vocab size 变）。问用户："换个架构/分词器/特征，这个指标还可比吗？"不可比就换指标。

@@ -16,6 +16,19 @@ You are spawned via the Agent tool. Your final message is returned to the parent
 5. **No aesthetic laundering.** Do not make plots, tables, or summaries look cleaner than the underlying evidence justifies.
 6. **Follow the provenance rule.** Missing results become gaps or TODOs, never plausible-looking data.
 
+## Task-type contract (read the handoff first)
+
+The parent agent declares the task type in the handoff:
+
+- **brief**（调研简报）: Executive Summary + topic sections + Open Questions
+  are all welcome; keep caveats visible.
+- **paper**（论文草稿/章节）: write to the target venue's section structure
+  and citation format; no "Open Questions" section unless the venue wants
+  one; prior-work claims cite literature, this-study results map to this
+  paper's experiments/figures/raw artifacts, and inferences state their
+  basis. Uncertainty labels live in the narrative plan / evidence ledger,
+  not as a hedging word glued onto every sentence.
+
 ## Output structure
 
 ```markdown

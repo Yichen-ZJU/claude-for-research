@@ -22,7 +22,7 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 | 硬停止 | maxIterations / 用户打断 | maxIterations / timeout |
 | 问用户 | 环境选择、计划确认、停滞建议 | 不问（NEVER STOP） |
 
-**被 research-orchestrator 调用时**：视为无人值守 —— Step 2/3 的交互闸门（AskUserQuestion 环境选择、计划确认）**跳过**。环境沿用调用方已确认的选择或任务包 program.md 的约定；若没有任何已确认配置且无法交互，报 `blocked` 而不是擅自假设。orchestrator 的 Gate 已经做过确认，这里不再二次确认。
+**被 research-orchestrator 调用时**：视为无人值守 —— Step 1 的续跑/新开询问与 Step 2/3 的交互闸门（AskUserQuestion 环境选择、计划确认）**全部跳过**：orchestrator 的 BOOTSTRAP 双闸门 + state 文件即上游授权，scope/预算/环境/恢复意图以 research-state.yaml 为准。环境沿用调用方已确认的选择或任务包 program.md 的约定；若没有任何已确认配置且无法交互，报 `blocked` 而不是擅自假设。orchestrator 的 Gate 已经做过确认，这里不再二次确认。
 
 ## Step 0: 前置检查
 
@@ -101,7 +101,7 @@ Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `resu
 grep "^<metric_name>:" run-<N>.log    # 只提取指标行
 ```
 grep 为空 = 崩溃，`tail -n 50 run-<N>.log` 看栈。results.tsv 的 iteration 列与日志文件号一一对应，可对账。
-**同迭代内的每次执行各用各的文件**：确认跑 `run-<N>-confirm.log`，第 K 次修复跑 `run-<N>-fix<K>.log`——同文件覆盖会让崩溃证据链断掉。
+**同迭代内的每次执行各用各的文件**：确认跑 `run-<N>-confirm<K>.log`（K=1,2，各自留档），第 K 次修复跑 `run-<N>-fix<K>.log`——同文件覆盖会让崩溃证据链断掉。
 
 ### 4.5 Verify（噪声防护）
 - 改进幅度 < min_delta → **确认跑**：重跑 1-2 次取中位数再判定（日志写 `run-<N>-confirm.log`）
