@@ -1,4 +1,7 @@
-FOR RESEARCH — BILINGUAL HOMEPAGE
+LEMNIVO — BILINGUAL HOMEPAGE
+
+One research system. Two CLI engines.
+Claude for Research (Lemnivo) / Codex for Research (Lemnivo).
 
 Open index.html in a browser, or serve this folder with any static file server.
 No build, package installation, API keys, or external assets are required.
@@ -6,6 +9,7 @@ No build, package installation, API keys, or external assets are required.
 Files
   index.html          Page structure and Chinese copy
   styles.css          Base responsive dark theme and motion
+  lemnivo-brand.css   Shared brand accents and engine-title typography
   research-stages.css  Research, optimization, and compact footer credits
   app.js              English copy, language switch, tabs, search, copy, and demo
   skills-data.js      115 shared skill entries, source links, 12 topic groups
@@ -21,9 +25,9 @@ Research narrative
   the bounded, unattended optimization loop. Improvement is a goal, not a
   promised benchmark result. ArXiv MCP is the full-text retrieval backend.
 
-Repository snapshot checked 2026-10-03
-  Claude: 115 skills at 54a80dcf5d499271b8eb840671d9c9ca2fe94667
-  Codex: 115 skills at ab2a6ca94fd8353085af8eb946645bd6490034cd
+Repository snapshot checked 2026-10-07
+  Claude: 115 skills at b7aea95b6a7c1c8666abc7c57b26f789588249a7
+  Codex: 115 skills at 672b4a6fe1c494f571d682ba119083803091a735
   Shared names: 115.
   Count convention: skills/<directory>/SKILL.md; not agents or nested references.
 
@@ -61,7 +65,7 @@ Acknowledgements
   ARIS — experiment queues, watchdogs, and experimental safety conventions
     https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep
   Source URLs checked against server repository remotes/source notes and their
-  GitHub pages on 2026-10-03. The former getcompanion-ai/feynman URL redirects
+  GitHub pages on 2026-10-07. The former getcompanion-ai/feynman URL redirects
   to Companion-Inc/feynman. Component licenses remain in the source repositories.
   Acknowledgement does not imply affiliation or endorsement.
 

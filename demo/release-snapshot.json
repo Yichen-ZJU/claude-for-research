@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-03",
-  "method": "GitHub recursive Git tree at fixed commit; ^skills/[^/]+/SKILL.md$; no truncation",
+  "checkedAt": "2026-10-07",
+  "method": "Checked out current GitHub main branches at fixed commits; skills/<directory>/SKILL.md; sorted skill-name sets compared",
   "skillNamesMatch": true,
   "sharedCount": 115,
   "repositories": {
     "claude-for-research": {
-      "commit": "54a80dcf5d499271b8eb840671d9c9ca2fe94667",
+      "commit": "b7aea95b6a7c1c8666abc7c57b26f789588249a7",
       "count": 115,
       "skills": [
         "a-evolve",
@@ -126,7 +126,7 @@
       ]
     },
     "codex-for-research": {
-      "commit": "ab2a6ca94fd8353085af8eb946645bd6490034cd",
+      "commit": "672b4a6fe1c494f571d682ba119083803091a735",
       "count": 115,
       "skills": [
         "a-evolve",
