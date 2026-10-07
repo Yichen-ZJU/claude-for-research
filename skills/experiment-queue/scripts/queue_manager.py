@@ -48,6 +48,7 @@ import shlex
 import subprocess
 import sys
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -236,6 +237,10 @@ def load_state(state_file, manifest):
             "project": manifest.get("project", "unknown"),
             "started": now(),
             "manifest_path": str(manifest.get("_path", "")),
+            # E05: per-run identity for screen session names. Screen names
+            # are global per user, so without this two queue managers running
+            # the same job id would share (and kill) each other's sessions.
+            "run_id": f"r{uuid.uuid4().hex[:12]}"  # 同毫秒启动的两个 state 文件也必须不同,
         },
         "phases": [
             {"name": p.get("name", f"phase_{i}"),
@@ -333,7 +338,22 @@ def assign_jobs_to_phases(manifest, state):
                 })
 
 
-def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook):
+def screen_name_for(meta, job_id):
+    """E05: unique-per-run screen session name.
+
+    Format EQ_<project>_<run_id>_<job_id>, each component sanitized,
+    truncated to screen's practical limit. Jobs from different runs of
+    different projects can never collide, so one queue manager will never
+    kill another's session on relaunch cleanup.
+    """
+    project = sanitize_name(str(meta.get("project", "unknown")), "project")
+    run_id = sanitize_name(str(meta.get("run_id", "norun")), "run_id")
+    jid = sanitize_name(job_id, "job id")
+    name = f"EQ_{project}_{run_id}_{jid}"
+    return name[:60]
+
+
+def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook, meta=None):
     """Launch job in a detached screen, return (screen_name, pid).
 
     Per attempt (A3): the log file and an atomic exit-code marker are
@@ -341,7 +361,7 @@ def launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook):
     marker/log from a previous attempt. The inner bash writes the
     command's real exit code to the marker just before exiting.
     """
-    screen_name = f"EQ_{job['id']}"
+    screen_name = screen_name_for(meta or {}, job["id"])
     if screen_exists(screen_name):
         # Shouldn't happen; clean up
         kill_screen(screen_name)
@@ -545,7 +565,7 @@ def step(manifest, state, state_file, log_dir):
     for i in range(slots):
         job = pending[i]
         gpu = free[i]
-        screen_name, pid = launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook)
+        screen_name, pid = launch_job(job, gpu, conda_env, cwd, log_dir, conda_hook, state["meta"])
         job["status"] = "running"
         job["gpu"] = gpu
         job["screen_name"] = screen_name

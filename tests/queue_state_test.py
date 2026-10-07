@@ -31,7 +31,7 @@ manifest = {"project": "t", "cwd": tmp, "conda": "base", "gpus": [0], "max_paral
     {"name": "teacher", "depends_on": [], "jobs": [{"id": "teacher", "cmd": "false"}]},
     {"name": "student", "depends_on": ["teacher"], "jobs": [{"id": "student", "cmd": "true"}]},
     {"name": "evaluate", "depends_on": ["student"], "jobs": [{"id": "evaluate", "cmd": "true"}]}]}
-def fake_launch(job, gpu, env, cwd, log_dir, hook):
+def fake_launch(job, gpu, env, cwd, log_dir, hook, meta=None):
     code = 0 if job["id"] in ("student", "evaluate") else 1
     ef = os.path.join(log_dir, f"{job['id']}.a{job['attempts']+1}.log.exit")
     open(ef, "w").write(str(code))
@@ -71,7 +71,7 @@ qm.datetime = FakeDT
 of = os.path.join(tmp, "oom.json")
 if os.path.exists(of): os.remove(of)
 ost = qm.load_state(of, oom_m); qm.assign_jobs_to_phases(oom_m, ost)
-def oom_launch(job, gpu, env, cwd, log_dir, hook):
+def oom_launch(job, gpu, env, cwd, log_dir, hook, meta=None):
     lf = os.path.join(log_dir, f"{job['id']}.a{job['attempts']+1}.log")
     open(lf, "w").write("CUDA out of memory\n")
     job["log_file"] = lf; job["exit_file"] = lf + ".exit"
