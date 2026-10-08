@@ -12,25 +12,27 @@ argument-hint: <research-question-or-project-dir>
 
 ## 路由表（本环境的执行层）
 
-## 实验引擎分流判据（按输入特征，可验证）
+## 实验路线菜单（判据可验证，裁决在 orchestrator）
 
-判定**只看输入里有什么/缺什么**，不看形容词。按序检查，首个命中的分支
-即落点；交接时按"后端交接"行显式传递预算与停止条件：
+**路线是菜单，不是流程图。** 下面每条路线给出可验证的适用判据（输入里
+有什么/缺什么）；**用哪条由 orchestrator 依任务状态自主裁决**——判据是
+证据，不是闸门。用户显式指定后端时**用户优先**。forge 只是可选起跑方式
+之一（需要可交付的自驱实验包时才用）：已有可迭代代码库时 autoresearch
+直接上手同样合法，不强制先造包。
 
-1. **已有实验包或进行中的循环？** 工作区存在 `<pkg>/program.md`（forge
-   产物）或 `autoresearch.md`/`autoresearch.jsonl`（会话文件）→ 直接
-   `autoresearch` 续跑/刷点，**不重新造包、不起其他引擎**。
-2. **新课题，无实验包？** 输入是一个研究想法/方向 + 代码库，且工作区
-   **没有**上述两类文件 → `experiment-forge` 造包起跑（锁定评估+开放
-   文件+契约随包），包成后由 autoresearch 执行。**禁止**跳过 forge 直接
-   让 autoresearch 在裸库上硬写循环。
-3. **Pro 部署追加判据**：
-   - 单一核心目标 + 允许多分支并行探索与剪枝（假设树形态）→ Arbor
-     （`arbor-research-agent` 入口）；
-   - 开放方向空间、无单一收敛目标、要团队并行撒网 → AutoScientists。
-   两条均要求第 1 条不命中（已有 autoresearch 循环时先收敛现有循环）。
-4. 命中分支后记录引擎身份与预算入 research-state.yaml；换引擎 = 新交接
-   行，累计账不清零。
+| 路线 | 适用判据（可验证） | 执行要点 |
+|---|---|---|
+| **续跑现有循环** | 工作区存在 `<pkg>/program.md`（forge 产物）或 `autoresearch.md`/`autoresearch.jsonl` | `autoresearch` 续跑/刷点；不重新造包、不起其他引擎 |
+| **新课题 forge 起跑** | 研究想法 + 代码库，无上述循环文件，且**需要可交付的自驱实验包**（无人值守/跨机交接） | `experiment-forge` 造包（锁定评估+开放文件+契约随包）→ autoresearch 执行；不需要交付包时可直接走下面的迭代路线 |
+| **裸库直接迭代** | 研究想法 + 可迭代代码库，无循环文件，不需要交付包 | autoresearch 就地工作（就地生成运行契约/评测命令即可）；forge 可选不强制 |
+| **SOTA 复现改进** | 任务有明确评测基准/榜单 + 存在可信 SOTA 公开实现 + 改进空间是增量型（方法/训练/效率），非全新范式 | 调研产物=候选 SOTA 清单（论文+官方代码+已报告指标，按可信度排序）；复现**限时**，目标"能跑通+指标量级对上"（复现值在报告值 ±5% 内），失败两次换实现或降级为"以官方 checkpoint 为基线"；autoresearch 直接在 SOTA 代码库上迭代（最小化改造，不重新造实验框架）；KEEP/DISCARD 以"是否超过已复现 SOTA 基线"为准，基线数字预注册时冻结 |
+| **假设树深挖**（Pro） | 单一核心目标 + 允许多分支并行探索与剪枝 | Arbor（`arbor-research-agent` 入口） |
+| **团队多方案竞争**（Pro） | 单一优化项目或开放方向均可——团队内部提多方案互评竞争；用户点名团队作战时优先 | AutoScientists（autoscientist/ 启动器）；与 Arbor 不互斥，按任务性质二选一或接力 |
+
+**通用交接规则（任一路线命中后 REQUIRED）**：引擎身份、局部预算与停止
+标准（autoresearch maxIterations/timeout；Arbor cycle cap/收益递减；
+AutoScientists profile 截止/KEEP streak）、已消耗资源记入
+research-state.yaml；换引擎 = 新交接行，累计账不清零。
 
 | 研究活动 | 路由到 |
 |---|---|
