@@ -48,3 +48,7 @@ idea-evaluator 与 research-orchestrator 各增一节"近邻存在 ≠ 否决 / 
 ## 2026-10-09 装载器修复 + 实验路由自动选择
 
 codex 0.160.0 字段报告驱动：experiment-forge 补 description（0.160.0 必填、argument-hint 可选）；全舰队 589 个 SKILL.md 按最严 schema lint 清零（含 anti-defensive-writing-en 的 frontmatter 内嵌段修复）；orchestrator 增加可验证的实验引擎分流判据（有包/有会话→autoresearch；新课题无包→先 forge；pro 单目标→Arbor、开放方向→AutoScientists），交接显式传预算与停止条件。138.6/140.30 热修文本与上游统一。
+
+## 2026-10-09 路由哲学修正 + SOTA 复现改进路线
+
+路线改菜单制（判据可验证、裁决在 orchestrator、用户指定优先）；撤销"新课题必须先 forge"的刚性条款（裸库 autoresearch 合法）；AutoScientists 双用途（撒网 + 单项目多方案竞争，与 Arbor 不互斥）；新增 SOTA 复现改进路线（限时复现 ±5% 量级对上→官方 checkpoint 降级→SOTA 代码库上直接迭代，基线预注册冻结）。
