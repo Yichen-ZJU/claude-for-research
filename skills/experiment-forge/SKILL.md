@@ -1,5 +1,6 @@
 ---
 name: experiment-forge
+description: Forge self-contained experiment packages with code, configs and runbooks from a task description; use when launching or packaging structured autonomous experiments
 argument-hint: <task-description>
 ---
 

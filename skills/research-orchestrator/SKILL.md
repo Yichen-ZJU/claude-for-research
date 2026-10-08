@@ -12,6 +12,26 @@ argument-hint: <research-question-or-project-dir>
 
 ## 路由表（本环境的执行层）
 
+## 实验引擎分流判据（按输入特征，可验证）
+
+判定**只看输入里有什么/缺什么**，不看形容词。按序检查，首个命中的分支
+即落点；交接时按"后端交接"行显式传递预算与停止条件：
+
+1. **已有实验包或进行中的循环？** 工作区存在 `<pkg>/program.md`（forge
+   产物）或 `autoresearch.md`/`autoresearch.jsonl`（会话文件）→ 直接
+   `autoresearch` 续跑/刷点，**不重新造包、不起其他引擎**。
+2. **新课题，无实验包？** 输入是一个研究想法/方向 + 代码库，且工作区
+   **没有**上述两类文件 → `experiment-forge` 造包起跑（锁定评估+开放
+   文件+契约随包），包成后由 autoresearch 执行。**禁止**跳过 forge 直接
+   让 autoresearch 在裸库上硬写循环。
+3. **Pro 部署追加判据**：
+   - 单一核心目标 + 允许多分支并行探索与剪枝（假设树形态）→ Arbor
+     （`arbor-research-agent` 入口）；
+   - 开放方向空间、无单一收敛目标、要团队并行撒网 → AutoScientists。
+   两条均要求第 1 条不命中（已有 autoresearch 循环时先收敛现有循环）。
+4. 命中分支后记录引擎身份与预算入 research-state.yaml；换引擎 = 新交接
+   行，累计账不清零。
+
 | 研究活动 | 路由到 |
 |---|---|
 | 文献调研 / 综述 | `literature-review` skill + alphaxiv MCP（`discover_papers` 等） |
