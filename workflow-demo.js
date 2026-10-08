@@ -10,7 +10,7 @@
     label: ['教学示例 · 非真实实验数据', 'TEACHING DEMO · SIMULATED DATA'],
     play: ['播放', 'Play'], pause: ['暂停', 'Pause'], again: ['再看一遍', 'Play again'],
     next: ['下一步 →', 'Next step →'], restart: ['重播 ↺', 'Restart ↺'],
-    routeResearch: ['调研与构思', 'Research & ideas'], routeLoops: ['双循环实验', 'Two-loop research'], routeWriting: ['写作与评审', 'Writing & review'],
+    routeResearch: ['调研与构思', 'Research & ideas'], routeSetup: ['选择实验路线', 'Choose a route'], routeSetup: ['选择实验路线', 'Choose a route'], routeLoops: ['双循环实验', 'Two-loop research'], routeWriting: ['写作与评审', 'Writing & review'],
     outerQuestion: ['下一步，该研究什么？', 'What should we investigate next?'],
     innerQuestion: ['这个想法，怎样做得更好？', 'How can this idea work better?'],
     nodeModify: ['改模型', 'Modify'], nodeRun: ['训练与测量', 'Train & measure'],
@@ -67,8 +67,8 @@
       phase:'protocol', route:1, directive:'FORGE', hypothesis:'hypothesis1', h:'HYPOTHESIS 01', reflection:'waiting', loop:'loopBaseline',
       duration:4500, trial:90.0, best:90.0, verdict:'baseline', skills:['experiment-forge'], artifact:'program.md + prepare.py + train.py',
       label:['任务包 → 锁定评估 → 基线', 'PACKAGE → LOCK EVALUATION → BASELINE'],
-      title:['把想法锻造成自主任务包。', 'Forge an autonomous task package.'],
-      body:['固定数据划分与评估，开放模型和训练逻辑，写明预算。先提交计划，再跑基线；示意正确率为 90.0%。', 'Fix the data split and evaluation, define editable model and training code, and set a budget. Commit the protocol before running a baseline: 90.0% in this illustration.']
+      title:['选一条适合本题的实验路线。', 'Choose a route for this question.'],
+      body:['本例选择 Forge，便于把任务包独立交付运行；有现成可迭代代码时，也可直接调用 Autoresearch。固定评估与预算，提交计划后建立 90.0% 的示意基线。', 'This example chooses Forge for a standalone task package; an existing iterable codebase can use Autoresearch directly. Fix evaluation and budget, commit the plan, then establish the illustrative 90.0% baseline.']
     },
     {
       phase:'inner', route:2, directive:'EXPERIMENT', hypothesis:'hypothesis1', h:'HYPOTHESIS 01', reflection:'waiting', loop:'loopKeep',
@@ -93,7 +93,7 @@
     },
     {
       phase:'protocol', route:2, directive:'NEW HYPOTHESIS', hypothesis:'hypothesis2', h:'HYPOTHESIS 02', reflection:'h2', loop:'loopReframe',
-      duration:4500, trial:null, best:91.2, verdict:'protocol', skills:['research-orchestrator','experiment-forge'], artifact:'protocol-h2.md → commit → run',
+      duration:4500, trial:null, best:91.2, verdict:'protocol', skills:['research-orchestrator'], artifact:'protocol-h2.md → commit → run',
       label:['新假设 → 新计划 → 返回实验', 'NEW HYPOTHESIS → PLAN → EXPERIMENT'],
       title:['把反思变成下一轮实验。', 'Turn reflection into the next experiment.'],
       body:['提出 H2：训练时加入轻微旋转增强，能否减少这类错误？更新任务包并提交计划；仍用同一评估集，避免移动评价标准。', 'Form H2: could mild rotation augmentation during training reduce these errors? Update the task package and commit the plan. Keep the evaluation set unchanged.']

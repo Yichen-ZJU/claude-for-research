@@ -1,6 +1,6 @@
 LEMVO — BILINGUAL HOMEPAGE
 
-One research system. Two CLI engines.
+A research agent that thinks and acts. One system, two CLI engines.
 Lemvo for Claude Code / Lemvo for Codex.
 
 Open index.html in a browser, or serve this folder with any static file server.
@@ -19,15 +19,16 @@ Files
   demo/release-snapshot.json  Pinned repository skill-count evidence
 
 Research narrative
-  Research Orchestrator coordinates research and ideation, autonomous
-  experiment optimization, and writing/review, supported by 115 research skills.
-  Experiment Forge builds Karpathy-style task packages. Autoresearch executes
-  the bounded, unattended optimization loop. Improvement is a goal, not a
-  promised benchmark result. ArXiv MCP is the full-text retrieval backend.
+  Research Orchestrator connects question framing, literature, hypotheses,
+  method development, experiments, reflection, and writing with 115 skills.
+  Research routes are chosen for the task: idea-led discovery, reproduction
+  and improvement of existing methods, or a standalone Forge task package.
+  Autoresearch executes the unattended inner loop; the outer loop interprets
+  findings and revises direction. ArXiv MCP provides full-text retrieval.
 
-Repository snapshot checked 2026-10-07
-  Claude: 115 skills at 6582cc4009522269e77becc6dbddb6b1a14e4500
-  Codex: 115 skills at 510c6d4652ff1c39e65b19b9e124b9f34281e2cb
+Repository snapshot checked 2026-10-08
+  Claude: 115 skills at ccec0679a9534e1757d4e358e610023d9e33d11f
+  Codex: 115 skills at 54b33b26d84696b42a94116252872845b49bb166
   Shared names: 115.
   Count convention: skills/<directory>/SKILL.md; not agents or nested references.
 
@@ -47,7 +48,7 @@ Teaching demonstration
   Play/pause, next step, restart, and the progress slider are keyboard accessible.
   Playback starts when the example enters view, pauses offscreen or in a hidden
   tab, runs once, and defaults to manual control for reduced-motion users.
-  FINER/Gate 0/Gate 1 in the workflow overview describes the Codex implementation.
+  The Forge step illustrates one route, not a required stage for every project.
 
 Acknowledgements
   Andrej Karpathy / autoresearch — autonomous experiment-package pattern
@@ -65,7 +66,7 @@ Acknowledgements
   ARIS — experiment queues, watchdogs, and experimental safety conventions
     https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep
   Source URLs checked against server repository remotes/source notes and their
-  GitHub pages on 2026-10-07. The former getcompanion-ai/feynman URL redirects
+  GitHub pages on 2026-10-08. The former getcompanion-ai/feynman URL redirects
   to Companion-Inc/feynman. Component licenses remain in the source repositories.
   Acknowledgement does not imply affiliation or endorsement.
 

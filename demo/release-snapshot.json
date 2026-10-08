@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-07",
-  "method": "Checked out current GitHub main branches at fixed commits; skills/<directory>/SKILL.md; sorted skill-name sets compared",
+  "checkedAt": "2026-10-08",
+  "method": "Current public repository HEAD tracked skills/*/SKILL.md lists compared; 115 each, identical sorted paths SHA256 c83f62134202eccbce45a065ea3631a56dae285f558842b2f22c6c66475ab338",
   "skillNamesMatch": true,
   "sharedCount": 115,
   "repositories": {
     "claude-for-research": {
-      "commit": "6582cc4009522269e77becc6dbddb6b1a14e4500",
+      "commit": "ccec0679a9534e1757d4e358e610023d9e33d11f",
       "count": 115,
       "skills": [
         "a-evolve",
@@ -126,7 +126,7 @@
       ]
     },
     "codex-for-research": {
-      "commit": "510c6d4652ff1c39e65b19b9e124b9f34281e2cb",
+      "commit": "54b33b26d84696b42a94116252872845b49bb166",
       "count": 115,
       "skills": [
         "a-evolve",
