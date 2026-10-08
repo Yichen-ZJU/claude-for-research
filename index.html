@@ -1,155 +1,23 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101312">
-  <meta name="description" content="Lemvo：会思考，会行动的科研 Agent。由 Research Orchestrator 协调 115 个科研技能，理解问题、构建方法、选择实验、解释结果，走向论文与发现。">
-  <meta property="og:title" content="Lemvo — A research agent that thinks and acts.">
-  <meta property="og:description" content="Lemvo connects research reasoning with action: literature, hypotheses, method development, experiments, reflection, and writing. 115 skills. Claude Code + Codex CLI.">
-  <meta property="og:site_name" content="Lemvo">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://yichen-zju.github.io/claude-for-research/assets/social-cover.png?v=lemvo-agent-3">
-  <meta property="og:image:alt" content="Lemvo — A research agent that thinks and acts. The mint dual-loop logo.">
-  <meta property="og:image:width" content="1600">
-  <meta property="og:image:height" content="640">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Lemvo — A research agent that thinks and acts.">
-  <meta name="twitter:description" content="Frame questions. Build methods. Test ideas. Learn from evidence. Write discoveries.">
-  <meta name="twitter:image" content="https://yichen-zju.github.io/claude-for-research/assets/social-cover.png?v=lemvo-agent-3">
-  <meta name="twitter:image:alt" content="Lemvo research agent with the mint dual-loop logo">
-  <link rel="canonical" href="https://yichen-zju.github.io/claude-for-research/">
-  <title>Lemvo · 会思考，会行动的科研 Agent</title>
-  <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="lemvo-brand.css?v=2">
-  <link rel="stylesheet" href="research-stages.css">
-  <link rel="stylesheet" href="research-routes.css">
-  <link rel="stylesheet" href="workflow-demo.css">
-  <script src="skills-data.js?v=lemvo-agent-3" defer></script>
-  <script src="app.js?v=lemvo-loops-4" defer></script>
-  <script src="workflow-demo.js?v=lemvo-agent-3" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,follow">
+  <link rel="canonical" href="https://yichen-zju.github.io/lemvo/">
+  <meta http-equiv="refresh" content="0; url=https://yichen-zju.github.io/lemvo/">
+  <title>Lemvo · 主页已迁移</title>
+  <script>
+    const destination=new URL('https://yichen-zju.github.io/lemvo/');
+    destination.search=location.search;
+    destination.hash=location.hash;
+    location.replace(destination.href);
+  </script>
+  <style>body{background:#101312;color:#edf0ea;font:16px/1.8 system-ui,sans-serif;margin:12vh auto;padding:24px;max-width:600px}a{color:#b7f7d4}</style>
 </head>
 <body>
-<a class="skip-link" href="#main" data-i18n="skip">跳到正文</a>
-<header class="header"><div class="nav-wrap">
-  <a class="brand" href="#" aria-label="Lemvo home"><img src="assets/logo.png" alt="" width="32" height="32"><span>Lemvo<span class="brand-dot">.</span></span></a>
-  <nav aria-label="Main navigation"><a href="#workflow" data-i18n="navWorkflow">工作流</a><a href="#capabilities" data-i18n="navCapabilities">能力</a><a href="#skills" data-i18n="navSkills">技能库</a></nav>
-  <div class="nav-actions"><button id="language" class="language" aria-label="Switch to English">EN <span aria-hidden="true">↗</span></button><a class="nav-cta" href="#start"><span data-i18n="navStart">开始研究</span><span aria-hidden="true">↗</span></a></div>
-</div></header>
-<main id="main">
-<section class="hero container">
-  <div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span><span data-i18n="heroEyebrow">LEMVO / THINKING RESEARCH AGENT</span></div>
-  <h1 class="hero-brand-name">Lemvo</h1>
-  <p class="hero-brand-promise" data-i18n="heroPromise">会思考，会行动的科研 Agent。</p>
-  <p class="hero-sub" data-i18n="heroSub">自主推进研究。运行于 Claude Code 与 Codex CLI。</p>
-  <p class="hero-description" data-i18n="heroDescription">理解问题、读透文献、构建方法、选择实验，并根据结果修订下一步。Research Orchestrator 协调 115 个科研技能，让 Claude Code 与 Codex CLI 自主推进从构想到发现、再到论文的研究过程。通过内外双循环推进：内循环构建与验证方法，外循环综合结果、修订假设并调整研究方向。</p>
-  <div class="hero-actions"><a class="button primary" href="#start"><span data-i18n="getStarted">开始你的研究</span><span aria-hidden="true">↗</span></a><a class="text-link" href="#walkthrough"><span data-i18n="seeLoop">看一遍完整流程</span><span aria-hidden="true">↓</span></a></div>
-  <div class="engine-note"><span class="tiny-asterisk">✳</span> Claude Code <span class="separator">/</span><span class="code-symbol">&gt;_</span> Codex CLI <span class="engine-note-label" data-i18n="engineNote">两种引擎，同一份技能清单</span></div>
-  </div>
-  <div class="hero-visual">
-    <div class="visual-topline"><span>RESEARCH IN MOTION</span><span>01 — ∞</span></div>
-    <div class="terminal"><div class="terminal-bar"><div class="window-dots"><i></i><i></i><i></i></div><span>research-lab / session</span><span class="demo-badge" data-i18n="demoLabel">流程示意</span></div>
-      <div class="terminal-content"><div class="prompt"><span>›</span><span data-i18n="terminalPrompt">研究这个问题，选择路线，并持续推进</span></div><div class="terminal-branch"><span>⎇</span> research / new-hypothesis</div>
-      <ol class="commit-stream" id="commit-stream">
-        <li data-stage="0"><span class="commit-node"></span><div><code>research(init)</code><p data-i18n="commitInit">理解问题 · 调研证据 · 形成假设</p></div><span class="commit-check">✓</span></li>
-        <li data-stage="1"><span class="commit-node"></span><div><code>research(protocol)</code><p data-i18n="commitProtocol">选择实验 · 写下预测 · 建立基线</p></div><span class="commit-check">✓</span></li>
-        <li data-stage="2"><span class="commit-node"></span><div><code>research(results)</code><p data-i18n="commitResults">实现方法 · 测量结果 · 记录发现</p></div><span class="commit-check">✓</span></li>
-        <li data-stage="3"><span class="commit-node"></span><div><code>research(reflect)</code><p data-i18n="commitReflect">解释结果 · 修订方法 · 决定方向</p></div><span class="commit-check">✓</span></li>
-      </ol><div class="terminal-bottom"><span class="status-dot"></span><span data-i18n="terminalMemory">findings.md · 让研究记得走过的路</span><span class="cursor">▌</span></div></div>
-    </div>
-    <div class="orbit-caption"><span class="small-orbit" aria-hidden="true">↻</span><span data-i18n="visualCaption">实验推动结果。反思推动方向。</span><button id="replay" class="icon-button" data-i18n="replay">重播 ↺</button></div>
-  </div>
-</section>
-<section class="metrics container" aria-label="Repository facts">
-  <div><strong>115<span> / skills</span></strong><p data-i18n="metricSkills">两种引擎，共同的科研技能体系</p></div><div><strong>2<span data-i18n="metricEngineUnit"> / 引擎</span></strong><p>Claude Code · Codex CLI</p></div><div><strong>4<span data-i18n="metricDirectionUnit"> / 方向</span></strong><p>DEEPEN · BROADEN · PIVOT · CONCLUDE</p></div><div><strong>1 + 1<span> / loops</span></strong><p data-i18n="metricLoops">实验推进 + 周期反思</p></div>
-  <div class="metrics-source"><span data-i18n="metricsSource">依据仓库 SKILL.md 实际计数 · 2026-10-08</span><a href="#evidence" data-i18n="checkSources">查看依据 ↗</a></div>
-</section>
-<section class="section container" id="workflow">
-  <div class="section-heading"><div><div class="eyebrow section-number">01 / THE RESEARCH ORCHESTRATOR</div><h2 data-i18n="workflowTitle">不只执行下一步，更判断下一步。</h2></div><p data-i18n="workflowDescription">Research Orchestrator 维护问题、假设、结果与研究记忆。内循环把方法做出来、把假设测清楚；外循环解释发现、修订方法并选择路线。你的目标与预算，贯穿每次决策。</p></div>
-  <div class="workflow-board">
-    <div class="workflow-board-top"><span><span class="status-dot"></span> RESEARCH ORCHESTRATOR</span><a class="source-link" href="https://github.com/Yichen-ZJU/codex-for-research/blob/54b33b26d84696b42a94116252872845b49bb166/skills/research-orchestrator/SKILL.md" target="_blank" rel="noopener noreferrer" data-i18n="readSpec">阅读流程规范 ↗</a></div>
-    <div class="workflow-grid">
-      <div class="bootstrap"><div class="mono-label">START / BOOTSTRAP</div><h3 data-i18n="bootstrapTitle">把问题问清楚。</h3><div class="gate"><span>GATE 0</span><p data-i18n="gate0">模糊想法 → 有证据的候选方向</p></div><div class="gate"><span>GATE 1</span><p data-i18n="gate1">FINER 审查 → 研究范围与方法</p></div><p class="fineprint" data-i18n="gatesNote">输入模糊时澄清方向；已有明确问题时直接推进。</p></div>
-      <div class="loop-diagram"><div class="loop-frame outer"><span class="loop-label" data-i18n="outerLoop">外循环 / 理解与定向</span><div class="outer-text"><span data-i18n="synthesize">综合结果</span><span>→</span><span data-i18n="askWhy">追问 WHY</span><span>→</span><span data-i18n="newHypothesis">新的假设</span></div><div class="loop-frame inner"><span class="loop-label" data-i18n="innerLoop">内循环 / 实验与验证</span><div class="inner-steps"><span data-i18n="protocol">预注册</span><span>→</span><span data-i18n="experiment">实验</span><span>→</span><span data-i18n="measure">测量</span><span>→</span><span data-i18n="learn">学习</span></div><div class="inner-return"><span>↶</span><code>keep / revert / record</code></div></div><div class="memory-line"><span>↳</span><code>findings.md</code><span data-i18n="projectMemory">跨会话的项目记忆</span><span>↺</span></div></div></div>
-      <div class="finalize"><div class="mono-label">OUTPUT / FINALIZE</div><h3 data-i18n="finalizeTitle">让发现留下来。</h3><div class="output-file"><span>≡</span><span data-i18n="output1">证据与研究综合</span></div><div class="output-file"><span>⌁</span><span data-i18n="output2">图表与进展报告</span></div><div class="output-file"><span>▤</span><span data-i18n="output3">论文草稿与归档</span></div><p class="fineprint" data-i18n="finalizeNote">交付代码、结果与发现；形成完整论证时进入论文写作。</p></div>
-    </div>
-    <div class="research-routes" aria-label="Research route choices">
-      <div class="routes-heading"><span class="status-dot"></span><span data-i18n="routesHeading">同一位总指挥，按课题选择研究路线。</span></div>
-      <div class="route-options">
-        <div><span class="mono-label">QUESTION → DISCOVERY</span><h3 data-i18n="routeIdeaTitle">从问题与构想出发</h3><p data-i18n="routeIdeaBody">调研与构思 → 构建方法 → 假设验证</p></div>
-        <div><span class="mono-label">SOTA → IMPROVEMENT</span><h3 data-i18n="routeSotaTitle">从已有方法继续推进</h3><p data-i18n="routeSotaBody">调研锁定实现 → 建立基线 → 迭代改进</p></div>
-        <div><span class="mono-label">FORGE → AUTONOMY</span><h3 data-i18n="routeForgeTitle">为独立运行锻造任务包</h3><p data-i18n="routeForgeBody">锁定评估与预算 → Forge 造包 → 自驱实验</p></div>
-      </div>
-    </div>
-    <div class="direction-control"><div class="direction-heading" data-i18n="directionHeading">结果之后，研究如何继续？</div><div class="direction-tabs" role="tablist" aria-label="Research directions"><button role="tab" aria-selected="true" aria-controls="direction-panel" id="direction-deepen" data-direction="deepen">↘ DEEPEN</button><button role="tab" aria-selected="false" aria-controls="direction-panel" id="direction-broaden" tabindex="-1" data-direction="broaden">↗ BROADEN</button><button role="tab" aria-selected="false" aria-controls="direction-panel" id="direction-pivot" tabindex="-1" data-direction="pivot">↶ PIVOT</button><button role="tab" aria-selected="false" aria-controls="direction-panel" id="direction-conclude" tabindex="-1" data-direction="conclude">✓ CONCLUDE</button></div><p id="direction-panel" role="tabpanel" aria-labelledby="direction-deepen"></p></div>
-  </div>
-</section>
-<section class="section container" id="capabilities">
-  <div class="section-heading"><div><div class="eyebrow section-number">02 / ONE COORDINATED RESEARCH WORKFLOW</div><h2 data-i18n="capabilitiesTitle">从理解问题，到形成发现。</h2></div><p data-i18n="capabilitiesDescription">调研启发构思，实验检验方法，反思推动研究，写作组织发现。三个阶段共享同一条问题与证据主线。</p></div>
-  <div class="coordination-map">
-    <div class="coordination-owner"><img src="assets/logo.png" width="24" height="24" alt=""><span>RESEARCH ORCHESTRATOR</span><small data-i18n="coordinationOwner">全程协调 · 共享研究状态</small></div>
-    <div class="coordination-stages"><a href="#prepare"><span>01</span><strong data-i18n="stagePrepare">调研与构思</strong><span aria-hidden="true">↗</span></a><a href="#optimize"><span>02</span><strong data-i18n="stageOptimize">方法构建与实验</strong><span aria-hidden="true">↗</span></a><a href="#write"><span>03</span><strong data-i18n="stageWrite">写作与评审</strong><span aria-hidden="true">↗</span></a></div>
-    <a class="coordination-foundation" href="#skills"><span class="mint">115 SKILLS</span><span data-i18n="coordinationFoundation">覆盖科研流程与领域方法，按需调用</span><span aria-hidden="true">↓</span></a>
-  </div>
-  <article class="research-feature" id="prepare">
-    <div class="research-copy"><div class="feature-index">01 <span>RESEARCH + IDEATION</span></div><h3 data-i18n="researchTitle">看得广，挖得深，想得有依据。</h3><p data-i18n="researchDescription">先扫描研究版图，再深入关键论文。用文献中的共识、分歧与空白启发 Idea，通过结构化构思和选题评估，把好奇心收敛为值得验证的问题。</p><div class="research-lenses"><div><span data-i18n="breadthLabel">广度</span><p data-i18n="breadthDescription">梳理方法谱系、比较不同路线，找出尚未解决的缺口。</p></div><div><span data-i18n="depthLabel">深度</span><p data-i18n="depthDescription">ArXiv MCP 下载全文、检索原文；为关键声明保留版本与来源。</p></div><div><span data-i18n="ideaLabel">构思</span><p data-i18n="ideaDescription">跨领域类比、反转假设、重构问题，把可行的增量与原创构想变成可检验的方法。</p></div></div><a class="text-link small" href="https://github.com/Yichen-ZJU/codex-for-research/blob/54b33b26d84696b42a94116252872845b49bb166/skills/brainstorming-research-ideas/SKILL.md" target="_blank" rel="noopener noreferrer" data-i18n="ideasSource">查看 Idea 构思方法 ↗</a></div>
-    <div class="research-workbench"><div class="mono-label" data-i18n="evidenceToIdea">从文献证据，到可检验的 Idea</div><div class="evidence-chain"><div><span>01</span><code>search_papers</code><small data-i18n="searchPapers">找到相关研究</small></div><div><span>02</span><code>download_paper</code><small data-i18n="downloadPaper">获取全文与版本</small></div><div><span>03</span><code>search_paper_text</code><small data-i18n="searchText">定位并核验关键声明</small></div><div class="provenance"><span>↳</span><code>report.provenance.md</code><span class="mint" data-i18n="traceable">可追溯</span></div></div><div class="idea-handoff"><span class="handoff-arrow" aria-hidden="true">↓</span><div><strong data-i18n="ideaHandoff">证据 → 候选想法 → 选题审查</strong><code>brainstorming · creative-thinking · idea-evaluator</code></div></div><div class="idea-dimensions"><span>Higher</span><span>Faster</span><span>Stronger</span><span>Cheaper</span><span>Broader</span></div><p class="research-output" data-i18n="researchOutput">交付：有来源的调研综述、候选方向、可执行的研究问题。</p></div>
-  </article>
-  <article class="experiment-feature" id="optimize">
-    <div class="experiment-copy"><div class="feature-index">02 <span>EXPERIMENT FORGE + AUTORESEARCH</span></div><h3 data-i18n="forgeTitle">让每次实验，回答一个研究问题。</h3><p data-i18n="forgeDescription">实验既能优化模型，也能检验假设、定位失败原因。Research Orchestrator 按课题选择路线：从已有实现继续改进，或用 Experiment Forge 锻造可交付的 Karpathy 式自驱任务包；Autoresearch 执行改、测、留与回滚的无人值守内循环。</p><div class="optimization-targets"><span data-i18n="optimizationLabel">围绕问题选择实验</span><div><strong data-i18n="metricAccuracy">验证假设</strong><strong data-i18n="metricLoss">理解机制</strong><strong data-i18n="metricEfficiency">改进模型</strong></div></div><p class="experiment-range" data-i18n="experimentRange">明确优化任务时，围绕正确率、损失或效率持续迭代；探索任务时，用对照与诊断辨别解释，再把发现变成具体的方法改动。</p><a class="text-link small" href="https://github.com/Yichen-ZJU/codex-for-research/tree/54b33b26d84696b42a94116252872845b49bb166/skills/experiment-forge" target="_blank" rel="noopener noreferrer" data-i18n="forgeSource">查看自主任务包规范 ↗</a></div>
-    <div class="experiment-workbench"><div class="package-heading"><span>OPTION / FORGE</span><span data-i18n="packageLabel">需要独立交付时，需要独立交付时，构造任务包</span></div><div class="file-stack"><div><span class="file-icon">▣</span><code>prepare.py</code><span class="file-tag" data-i18n="locked">锁定数据与评估</span></div><div><span class="file-icon mint">⌘</span><code>train.py</code><span class="file-tag mint" data-i18n="editable">模型与训练可改</span></div><div><span class="file-icon">≡</span><code>program.md</code><span class="file-tag" data-i18n="contract">目标、预算与边界</span></div><div><span class="file-icon">▤</span><code>pyproject.toml</code><span class="file-tag" data-i18n="dependencies">锁定依赖</span></div><div><span class="file-icon">↳</span><code>results.tsv</code><span class="file-tag" data-i18n="ledger">每轮实验台账</span></div></div><div class="package-heading"><span>INNER LOOP / AUTORESEARCH</span><span data-i18n="executionLabel">运行自主优化循环</span></div><div class="optimization-loop"><div><span data-i18n="loopBaseline">先跑基线</span><span aria-hidden="true">→</span><span data-i18n="loopModify">提出并实施改动</span><span aria-hidden="true">→</span><span data-i18n="loopEvaluate">训练与评估</span></div><div class="loop-decisions"><span data-i18n="loopDecision">保留有效改进 · 回滚退步</span><span aria-hidden="true">↺</span></div></div><div class="experiment-guards"><span data-i18n="guardBudget">运行预算</span><span data-i18n="guardRegression">防回归检查</span><span data-i18n="guardNoise">小幅改进复测</span><span data-i18n="guardLedger">Git 留痕</span></div></div>
-    <p class="optimization-note" data-i18n="optimizationNote">每轮留下代码、测量与判断；外循环把这些记录综合成发现，再决定深化、拓展、改动或收尾。</p>
-  </article>
-  <article class="writing-feature" id="write"><div class="writing-copy"><div class="feature-index">03 <span>PAPER PRODUCTION + DUAL REVIEW</span></div><h3 data-i18n="writingTitle">让实验结果，长成一篇有说服力的论文。</h3><p data-i18n="writingDescription">把研究中的问题、洞见、方法与证据组织成清晰主线。摘要抓住核心贡献，Introduction 展开问题张力，实验回答关键追问，结尾凝练发现。叙事规划、图文表达、引用核验与双重评审贯穿全稿。</p><a class="text-link small" href="https://github.com/Yichen-ZJU/codex-for-research/tree/54b33b26d84696b42a94116252872845b49bb166/skills/paper-production" target="_blank" rel="noopener noreferrer" data-i18n="writingSource">查看论文总装线 ↗</a></div><div class="writing-pipeline"><div class="paper-stage"><span>01</span><strong data-i18n="paperIdea">选题与骨架</strong><code>idea-evaluator → templates</code></div><div class="paper-stage"><span>02</span><strong data-i18n="paperNarrative">叙事与图规划</strong><code>intro-drafter → paper-narrative</code></div><div class="paper-stage"><span>03</span><strong data-i18n="paperDraft">起草与证据核验</strong><code>writer → verifier</code></div><div class="paper-stage"><span>04</span><strong data-i18n="paperReview">证据审查 + 写作审查</strong><code>reviewer + pre-submission-reviewer</code></div><div class="writing-footer"><span class="status-dot"></span><span data-i18n="paperGate">每阶段设质量门 · 保留来源与 AI 使用披露</span></div></div></article>
-  <div class="principle-strip"><span class="principle-icon">⎇</span><div><h3 data-i18n="principleTitle">先提交研究计划，再运行实验。</h3><p data-i18n="principleDescription">Protocol 与 results 分开提交，保留计划先于结果的 Git 记录。失败与阴性结果，也有自己的位置。</p></div><code>protocol → commit → run</code></div>
-</section>
-<section class="section container" id="walkthrough">
-  <div class="section-heading"><div><div class="eyebrow section-number">A SMALL QUESTION. THE WHOLE WORKFLOW.</div><h2 data-demo-i18n="title">用一个小问题，看懂双循环。</h2></div><p data-demo-i18n="intro">让小模型更准确地识别手写数字。跟随一次教学演示，看调研、实验、反思与写作如何接成完整流程。</p></div>
-  <div class="demo-player" id="demo-player" data-phase="bootstrap" data-step="0" data-playing="false">
-    <div class="demo-toolbar"><div class="demo-label"><span class="demo-indicator"></span><span data-demo-i18n="label">教学示例 · 非真实实验数据</span></div><div class="demo-controls"><button id="demo-toggle" type="button" aria-controls="demo-player" data-demo-i18n="play">播放</button><button id="demo-next" type="button" aria-controls="demo-player" data-demo-i18n="next">下一步 →</button><button id="demo-restart" type="button" aria-controls="demo-player" data-demo-i18n="restart">重播 ↺</button></div></div>
-    <div class="demo-scene">
-      <div class="demo-map">
-        <div class="demo-conductor"><div><img src="assets/logo.png" alt="" width="24" height="24"><span>RESEARCH ORCHESTRATOR</span></div><code id="demo-directive">BOOTSTRAP</code></div>
-        <ol class="demo-route"><li data-demo-route="0" class="is-active"><span>01</span><strong data-demo-i18n="routeResearch">调研与构思</strong></li><li data-demo-route="1"><span>02</span><strong data-demo-i18n="routeSetup">选择实验路线</strong></li><li data-demo-route="2"><span>03</span><strong data-demo-i18n="routeLoops">双循环实验</strong></li><li data-demo-route="3"><span>04</span><strong data-demo-i18n="routeWriting">写作与评审</strong></li></ol>
-        <div class="demo-outer-loop">
-          <div class="demo-loop-heading"><div><span class="demo-loop-index">OUTER LOOP</span><strong data-demo-i18n="outerQuestion">下一步，该研究什么？</strong></div><span class="demo-orbit" aria-hidden="true">↻</span></div>
-          <div class="demo-hypothesis"><span id="demo-hypothesis-id">QUESTION</span><p id="demo-hypothesis">怎样让一个小模型更准确地识别手写数字？</p></div>
-          <div class="demo-inner-loop">
-            <div class="demo-inner-heading"><span>INNER LOOP</span><strong data-demo-i18n="innerQuestion">这个想法，怎样做得更好？</strong></div>
-            <div class="demo-cycle-nodes"><div data-demo-node="modify"><span aria-hidden="true">⌘</span><strong data-demo-i18n="nodeModify">改模型</strong><small>train.py</small></div><span class="demo-flow-arrow" aria-hidden="true">→</span><div data-demo-node="run"><span aria-hidden="true">▷</span><strong data-demo-i18n="nodeRun">训练与测量</strong><small data-demo-i18n="fixedEval">固定评估</small></div><span class="demo-flow-arrow" aria-hidden="true">→</span><div data-demo-node="decide"><span aria-hidden="true">⑂</span><strong data-demo-i18n="nodeDecide">保留或回滚</strong><small>keep / revert</small></div></div>
-            <div class="demo-inner-return"><svg viewBox="0 0 600 54" preserveAspectRatio="none" aria-hidden="true"><defs><marker id="demo-return-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><path class="demo-trace-track" d="M550 2 V22 Q550 43 526 43 H74 Q50 43 50 22 V2" marker-end="url(#demo-return-arrow)"/><path class="demo-trace-flow" d="M550 2 V22 Q550 43 526 43 H74 Q50 43 50 22 V2"/></svg><span id="demo-loop-status" data-demo-i18n="loopWaiting">先明确课题，再开始实验</span></div>
-          </div>
-          <div class="demo-reflection"><span class="demo-why">WHY?</span><div><strong id="demo-reflection-title" data-demo-i18n="reflectWaiting">跳出单次实验，看清下一步。</strong><p id="demo-reflection-detail" data-demo-i18n="reflectWaitingDetail">综合实验记录、检查错误、修订假设，再回到内循环。</p></div><span class="demo-outer-return" aria-hidden="true">↰</span></div>
-        </div>
-        <div class="demo-memory"><span data-demo-i18n="memory">共享研究记忆</span><code>findings.md</code><span aria-hidden="true">+</span><code>results.tsv</code><span class="demo-memory-dot"></span></div>
-      </div>
-      <div class="demo-story">
-        <div class="demo-story-top"><span id="demo-step-count">01 / 12</span><span class="demo-digit-sample" aria-hidden="true"><i>3</i><i>8</i></span></div>
-        <div class="demo-narration"><div class="demo-stage-label" id="demo-stage">BOOTSTRAP</div><h3 id="demo-step-title">从一个简单问题开始。</h3><p id="demo-step-body">目标很清楚：让模型更准确地识别手写数字。先确认数据、算力预算与评价标准。</p></div>
-        <div class="demo-active-skills"><span data-demo-i18n="usingSkills">当前调用</span><div id="demo-skills"><code>research-orchestrator</code></div></div>
-        <div class="demo-scoreboard"><div><span data-demo-i18n="trialScore">本次测量 · 示意</span><strong id="demo-trial-score">—</strong></div><div><span data-demo-i18n="bestScore">当前保留 · 示意</span><strong id="demo-best-score">—</strong></div><span id="demo-verdict" class="demo-verdict">READY</span></div>
-        <div class="demo-artifact"><span data-demo-i18n="stepOutput">这一步留下</span><code id="demo-artifact-file">research-question.md</code></div>
-      </div>
-    </div>
-    <div class="demo-timeline"><label for="demo-progress" data-demo-i18n="progress">流程进度</label><input id="demo-progress" type="range" min="0" max="11" value="0" step="1" aria-valuetext="第 1 步：明确课题"><span id="demo-progress-caption">01 / 12</span></div>
-    <div class="demo-takeaway"><p><span class="demo-legend inner-legend"></span><strong data-demo-i18n="innerTakeawayTitle">内循环：优化一个假设。</strong><span data-demo-i18n="innerTakeaway">修改、测量，保留有效改进。</span></p><p><span class="demo-legend outer-legend"></span><strong data-demo-i18n="outerTakeawayTitle">外循环：更新研究方向。</strong><span data-demo-i18n="outerTakeaway">解释结果，提出下一轮问题。</span></p></div>
-  </div>
-  <p class="demo-disclaimer" data-demo-i18n="disclaimer">流程演示，指标为示意数据。</p>
-  <div class="demo-sr-only" id="demo-announcement" role="status" aria-live="polite"></div>
-</section>
-<section class="section container" id="skills">
-  <div class="section-heading"><div><div class="eyebrow section-number">03 / A RESEARCH TOOLKIT THAT GOES DEEP</div><h2 data-i18n="skillsTitle">115 个技能，让每一步都有方法。</h2></div><p data-i18n="skillsDescription">从 AlphaFold2 到 DeepSpeed，115 个科研技能覆盖调研、实验、写作与跨领域方法。由 Orchestrator 按课题需要调度，让专业能力融入每一步。</p></div>
-  <div class="skills-toolbar"><div class="skill-filters" role="group" aria-label="Skill engine filter"><button data-engine="all" aria-pressed="true" data-i18n="allSkills">全部技能</button><button data-engine="claude" aria-pressed="false">Claude Code</button><button data-engine="codex" aria-pressed="false">Codex CLI</button></div><label class="skill-search"><span aria-hidden="true">⌕</span><input id="skill-search" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="搜索技能，例如 deepspeed" aria-label="Search skills"><kbd>/</kbd></label></div>
-  <div class="skills-count"><span id="skills-count"></span><span data-i18n="skillCategoriesNote">按主题整理的 12 组 · 点击技能阅读源码</span></div><div class="skill-grid" id="skill-grid"></div><button class="show-skills" id="show-skills" aria-expanded="false"></button><p class="fineprint skills-footnote" data-i18n="skillsFootnote">同一套 115 个科研技能，分别适配 Claude Code 与 Codex CLI。数量依据 skills/*/SKILL.md 计数。</p>
-</section>
-<section class="section container" id="engines">
-  <div class="section-heading"><div><div class="eyebrow section-number">04 / TWO ENGINES. ONE RESEARCH MINDSET.</div><h2 data-i18n="enginesTitle">选择你的引擎，延续你的研究。</h2></div><p data-i18n="enginesDescription">同源的科研约定与技能设计，分别适配两种 CLI。用熟悉的工具，组织一套完整的研究流程。</p></div>
-  <div class="engine-grid"><article class="engine-card"><div class="engine-icon">✳</div><div><span class="mono-label">LEMVO / CLAUDE CODE</span><h3><span class="product-brand">Lemvo</span><span class="engine-variant">for Claude Code</span></h3><p data-i18n="claudeDescription">115 个技能与 4 个专业子代理。用 Claude Code 原生 Agent、技能与会话内心跳，串联研究、实验、写作与评审。</p><a href="https://github.com/Yichen-ZJU/claude-for-research" target="_blank" rel="noopener noreferrer"><span>claude-for-research</span><span>↗</span></a></div></article><article class="engine-card"><div class="engine-icon code-symbol">&gt;_</div><div><span class="mono-label">LEMVO / CODEX CLI</span><h3><span class="product-brand">Lemvo</span><span class="engine-variant">for Codex</span></h3><p data-i18n="codexDescription">同样的 115 个技能，适配 Codex CLI 的执行方式。后台实验作业、完成标志与项目记忆衔接长任务。</p><a href="https://github.com/Yichen-ZJU/codex-for-research" target="_blank" rel="noopener noreferrer"><span>codex-for-research</span><span>↗</span></a></div></article></div>
-</section>
-<section class="section container start-section" id="start"><div class="start-copy"><div class="eyebrow section-number">05 / YOUR NEXT QUESTION STARTS HERE</div><h2><span data-i18n="startTitle1">下一次发现，</span><br><span class="mint" data-i18n="startTitle2">从你的终端开始。</span></h2><p data-i18n="startDescription">装好并登录对应 CLI 后，在 Bash 环境中安装研究技能。保留已有配置的备份，然后开启一个新的研究会话。</p><div class="start-meta"><span class="status-dot"></span><span data-i18n="startMeta">源码公开 · 本地工作流 · 自有计算资源</span></div></div><div class="quickstart"><div class="install-tabs" role="tablist" aria-label="Install engine"><button id="install-claude" data-install="claude" role="tab" aria-selected="true" aria-controls="install-panel">Claude Code</button><button id="install-codex" data-install="codex" role="tab" aria-selected="false" tabindex="-1" aria-controls="install-panel">Codex CLI</button><span>BASH</span></div><div role="tabpanel" id="install-panel" aria-labelledby="install-claude"><div class="code-heading"><span data-i18n="installLabel">安装研究技能</span><button class="copy-button" id="copy-install" data-i18n="copy">复制</button></div><pre><code id="install-code"></code></pre><p class="install-note" data-i18n="installNote">这三行安装技能与研究约定。全文检索需另行配置 ArXiv MCP。</p><details id="mcp-details"><summary data-i18n="mcpSetup">配置 ArXiv MCP 全文检索</summary><p data-i18n="mcpNote">先安装 Python 与 pip；以下使用默认用户安装路径。Codex 需先启动一次以生成配置。</p><pre><code id="mcp-code"></code></pre><p data-i18n="mcpCheck">重启 CLI 并检查 arxiv 工具已加载。自定义安装路径需相应调整。</p></details><div class="first-prompt"><div class="mono-label" data-i18n="firstPromptLabel">然后，把第一个问题交给它</div><p data-i18n="firstPrompt">使用 research-orchestrator 开始研究：我的问题是……，可用预算是……，请先建立研究计划和评估标准。</p></div></div></div></section>
-<section class="container evidence-section" id="evidence"><details><summary><span data-i18n="evidenceTitle">来源与演示说明</span><span>＋</span></summary><div class="evidence-details"><p data-i18n="evidenceNote">技能数量核对于 2026-10-08：Claude 仓库 ccec067，Codex 仓库 54b33b2，均包含相同的 115 个技能名称。终端动画是流程示意，12 组为本站的主题分类。</p><p data-i18n="autonomyNote">自主推进依赖已确认的课题、运行环境、预算及持续运行的 CLI 会话。两边技能名单相同，执行机制与部分流程细节按宿主适配。正式研究仍需研究者核验结论。</p><div class="evidence-links"><a href="https://github.com/Yichen-ZJU/claude-for-research/tree/ccec0679a9534e1757d4e358e610023d9e33d11f/skills" target="_blank" rel="noopener noreferrer">Claude · ccec067 ↗</a><a href="https://github.com/Yichen-ZJU/codex-for-research/tree/54b33b26d84696b42a94116252872845b49bb166/skills" target="_blank" rel="noopener noreferrer">Codex · 54b33b2 ↗</a></div></div></details></section>
-
-</main>
-<footer class="container footer" id="footer"><a class="brand" href="#" aria-label="Lemvo home"><img src="assets/logo.png" width="28" height="28" alt=""><span>Lemvo<span class="brand-dot">.</span></span></a><p data-i18n="footerLine">给研究以自主，给发现以依据。</p><div><a href="https://github.com/Yichen-ZJU" target="_blank" rel="noopener noreferrer">Yichen-ZJU ↗</a><span class="footer-thanks" id="acknowledgements"><span data-i18n="footerThanks">感谢开源仓库：</span><a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener noreferrer">autoresearch</a> · <a href="https://github.com/Companion-Inc/feynman" target="_blank" rel="noopener noreferrer">Feynman</a> · <a href="https://github.com/Orchestra-Research/AI-Research-SKILLs" target="_blank" rel="noopener noreferrer">AI Research Skills</a></span></div></footer>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-</body></html>
+  <h1>Lemvo</h1>
+  <p>主页已迁移。The homepage has moved.</p>
+  <p><a href="https://yichen-zju.github.io/lemvo/">打开 Lemvo 主页 / Open Lemvo →</a></p>
+</body>
+</html>
