@@ -1,52 +1,57 @@
-<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/"><img src="assets/research-cover.png?v=lemvo-primary-2" alt="Lemvo for Claude Code — One research system. Two CLI engines." width="100%"></a></p>
+<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/"><img src="assets/research-cover.png?v=lemvo-agent-3" alt="Lemvo for Claude Code — A research agent that thinks and acts." width="100%"></a></p>
 
 <h1 align="center">Lemvo for Claude Code</h1>
-<p align="center"><strong>一套自主科研体系，两种 CLI 引擎。<br>One research system. Two CLI engines.</strong><br>让想法，走到发现。 / From an idea. To a discovery.</p>
+<p align="center"><strong>会思考、会行动的科研 Agent。<br>A research agent that thinks and acts.</strong><br>一套科研体系，两种 CLI 引擎。 / One research system. Two CLI engines.</p>
 <p align="center"><a href="https://yichen-zju.github.io/claude-for-research/?lang=zh">Lemvo 中文主页</a> · <a href="https://yichen-zju.github.io/claude-for-research/?lang=en">Lemvo in English</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Lemvo for Codex</a></p>
 <p align="center"><img src="https://img.shields.io/badge/skills-115-B7F7D4?style=flat-square&amp;labelColor=101312" alt="115 skills"> <img src="https://img.shields.io/badge/engine-Claude%20Code-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Claude Code"> <img src="https://img.shields.io/badge/workflow-research%20%E2%86%92%20experiments%20%E2%86%92%20papers-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Research to experiments to papers"></p>
 
-**Lemvo** 是运行在 Claude Code 与 Codex CLI 上的自主科研体系。**Lemvo for Claude Code** 把 Claude Code 变成科研工作台：从深广度文献调研与 Idea 构思，到无人值守的模型改进试验，再到论文写作与评审，由 **Research Orchestrator** 协调全程，**115 个科研技能**提供工作流与领域方法。
+**Lemvo** 是运行在 Claude Code 与 Codex CLI 上的自主科研 Agent。**Lemvo for Claude Code** 从研究问题出发：读文献、提出构想、选择实验路线、构建和改进方法，再结合结果解释现象、修订假设，组织论文与评审。**Research Orchestrator** 协调这套思考与行动的双循环，**115 个科研技能**提供工作流与领域方法。
 
 选择 **Claude Code** 或 **Codex CLI**，保留同一套 Lemvo 科研流程。两个仓库各含 **115 个技能，技能名称集合一致**；工具调用与运行机制分别适配各自引擎。
 
-**Lemvo** brings one autonomous research system to **Claude Code** and **Codex CLI**. **Lemvo for Claude Code** equips Claude Code with broad and deep literature research, idea development, unattended model-improvement experiments, and paper writing and review. **Research Orchestrator** coordinates the whole journey, supported by **115 research skills** and nested experiment and reflection loops. The same skill catalogue runs on Codex CLI, with engine-specific tool adaptations.
+**Lemvo** is an autonomous research agent for **Claude Code** and **Codex CLI**. **Lemvo for Claude Code** starts with a research question: investigate the literature, develop ideas, choose an experiment route, build and improve methods, then interpret results, revise hypotheses, and shape the paper. **Research Orchestrator** coordinates this cycle of thinking and acting, supported by **115 research skills**. The same skill catalogue runs on Codex CLI, with engine-specific tool adaptations.
 
 ## 一套流程，两层循环 / One workflow, two loops
 
 ```mermaid
 flowchart TD
   Q[研究问题 / Research question] --> L[文献与构思 / Literature and ideas]
-  L --> F[Experiment Forge: task package]
+  L --> E{选择实验路线 / Choose a route}
+  E -->|需要自驱任务包 / Package needed| F[Experiment Forge: task package]
+  E -->|已有可迭代代码 / Existing code| M
   subgraph INNER[内循环 / Inner experiment loop]
-    M[改模型 / Modify] --> T[固定评估 / Measure]
+    M[构建或改进方法 / Build or improve] --> T[运行与测量 / Run and measure]
     T --> K[保留或回滚 / Keep or revert]
     K --> M
   end
   F --> M
   K --> R[外循环反思 / Reflect]
   R --> D{DEEPEN / BROADEN / PIVOT / CONCLUDE}
-  D -->|继续研究 / Continue| L
+  D -->|改方法、再验证 / Revise and retest| M
+  D -->|调研与新假设 / Investigate| L
   D -->|收尾 / Conclude| W[图表、论文与评审 / Figures, paper and review]
 ```
 
-**内循环优化模型，外循环判断方向。** Autoresearch 在任务包的范围与预算内反复修改、测量、保留或回滚；Orchestrator 汇总实验与文献证据，决定深入、拓宽、转向或收尾，让下一轮试验服务于研究问题。
+**内循环检验与迭代方法，外循环理解结果并推进研究。** Orchestrator 根据问题与项目状态安排实验、识别结果中的模式，决定下一步深挖机制、改进方法、拓宽问题或收尾。模型优化时，Autoresearch 在约定范围与预算内执行改→测→留/滚；机制探索时，实验用于检验假设、解释现象。每一轮都回到研究问题与证据。
 
-**The inner loop improves the model; the outer loop steers the research.** Autoresearch iterates within the task package's scope and budget. Orchestrator reflects on experimental and literature evidence and chooses whether to deepen, broaden, pivot, or conclude.
+**The inner loop tests and iterates methods; the outer loop makes sense of the results and steers the research.** Orchestrator chooses experiments for the question and project state, connects findings, and decides whether to investigate a mechanism, revise a method, broaden the question, or conclude. For model optimization, Autoresearch runs modify→measure→keep/revert within the agreed scope and budget. For discovery, experiments test hypotheses and explain phenomena.
 
 ## 从调研到论文 / From evidence to a paper
 
 | 阶段 / Stage | 能力 / Capability | 代表技能 / Skills |
 |---|---|---|
 | 调研与构思 / Research & ideation | 广度扫描、全文核验、跨领域构思、选题评价 / Map the field, verify full text, generate and evaluate ideas | `deep-research`, `literature-review`, `brainstorming-research-ideas`, `creative-thinking-for-research`, `idea-evaluator` |
-| 任务包与优化 / Experiment packages & optimization | 锁定评估、开放模型文件、设定目标与预算；自主运行改→测→留/滚 / Fix evaluation, expose editable model files, set goals and budgets; run modify→measure→keep/revert | `experiment-forge`, `autoresearch`, `run-experiment`, `experiment-queue`, `experiment-watchdog` |
+| 实验与方法迭代 / Experiments & method development | 选择路线、设计验证、复现基线、迭代方法；按需构造自驱任务包 / Choose a route, design tests, reproduce baselines and iterate methods; package unattended work when needed | `experiment-forge`, `autoresearch`, `run-experiment`, `experiment-queue`, `experiment-watchdog` |
 | 写作与评审 / Writing & review | 叙事规划、科研图表、论文起草、引用核验、对抗性评审 / Plan the narrative, build figures, draft, verify citations and review | `paper-production`, `paper-writing`, `paper-narrative`, `academic-plotting`, `research-review`, `paper-code-audit` |
-| 全程协调 / Orchestration | 维护研究状态，协调内外循环，推动成果收尾 / Maintain research state, coordinate both loops and assemble deliverables | `research-orchestrator` |
+| 全程协调 / Orchestration | 维护研究状态、累计预算与发现；解释结果，安排下一轮行动，推动成果收尾 / Maintain state, cumulative budgets and findings; interpret results, choose the next action and assemble deliverables | `research-orchestrator` |
 
-### Experiment Forge → Autoresearch
+### 自主实验：直接迭代或锻造任务包 / Direct iteration or a task package
 
-Forge 将想法锻造成 **Karpathy 式任务包**：`program.md` 说明目标、预算和边界，固定数据与评估入口，明确可修改的模型或训练文件，准备依赖与结果记录。Autoresearch 接过任务包，在给定算力与时间内自主探索模型结构、训练策略等改动，以准确率、损失或吞吐等指定指标指导保留与回滚。
+Orchestrator 根据任务选择起跑方式：已有可迭代代码库时，**Autoresearch 可以直接上手**；需要可交付、可跨机接力的无人值守实验包时，**Experiment Forge** 将构想锻造成 **Karpathy 式任务包**。其中 `program.md` 说明目标、预算和边界，固定数据与评估入口，明确可修改的模型或训练文件，准备依赖与结果记录。Autoresearch 在给定算力与时间内探索模型结构、训练策略等改动，以准确率、损失或吞吐等指定指标指导保留与回滚。
 
-Forge turns an idea into a **Karpathy-style task package**: a `program.md` brief, a fixed evaluation, editable model or training files, dependencies, and a result ledger. Autoresearch executes the unattended improvement loop, using the chosen metric to guide which changes to keep or revert.
+Orchestrator chooses how to start. **Autoresearch can work directly in an existing codebase**. When the project needs a transferable, unattended experiment package, **Experiment Forge** builds a **Karpathy-style task package**: a `program.md` brief, a fixed evaluation, editable model or training files, dependencies, and a result ledger. Autoresearch explores model and training changes within the compute and time budget, using the chosen metric to guide what to keep or revert.
+
+**SOTA 复现改进**：从可信论文与官方实现选择基线，限时复现，再直接在现有代码上迭代，比较已冻结的基线。 / **SOTA reproduction and improvement**: choose a baseline from credible papers and official implementations, bound the reproduction effort, then iterate in that codebase against the frozen baseline.
 
 ### ArXiv MCP · 全文级证据 / Full-text evidence
 
@@ -82,9 +87,9 @@ claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 
 安装后开启新会话，用一个明确的问题开始，例如： / Start a new session with a concrete research question:
 
-> 用 research-orchestrator 研究怎样改善手写数字分类器。先调研与构思，再用 experiment-forge 构造任务包，在固定评估下运行 autoresearch；结合结果反思方向，最后整理图表、实验报告和论文草稿。
+> 用 research-orchestrator 研究怎样改善手写数字分类器，以及改进为何有效。先调研与构思，选择合适的基线和实验路线：已有代码可直接运行 autoresearch，需要自驱任务包时再用 experiment-forge。结合结果改进方法、检验解释，最后整理代码、图表、研究发现和论文草稿。
 
-> Use research-orchestrator to investigate a handwritten-digit classifier. Research and propose ideas, forge a task package, run autoresearch against a fixed evaluation, reflect on the direction, and assemble figures, an experiment report, and a paper draft.
+> Use research-orchestrator to improve a handwritten-digit classifier and investigate why the changes work. Research the literature, develop ideas, and choose a baseline and experiment route: run autoresearch directly on existing code, or use experiment-forge when a task package is needed. Iterate methods, test explanations, and assemble code, figures, findings, and a paper draft.
 
 [在主页观看内外双循环动画 / Watch the nested-loop workflow →](https://yichen-zju.github.io/claude-for-research/#walkthrough)
 
