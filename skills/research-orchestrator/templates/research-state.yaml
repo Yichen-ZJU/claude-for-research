@@ -42,7 +42,7 @@ backend_ledger: []
 #   handoff: ""                   # 交接时传入的局部预算与停止标准
 #   local_cap: null
 #   local_used: 0.0
-#   note: ""                      # 例如 "需要 Pro 部署——本环境不可用，跳过"
+#   note: ""                      # 例如 "该后端在本环境不可用，跳过"
 
 experiments:
   proxy_metric: ""                # What we're optimizing and how to compute it

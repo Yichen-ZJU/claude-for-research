@@ -32,7 +32,7 @@ argument-hint: <research-question-or-project-dir>
 **可用性过滤（先于偏好选择）**：选择路线前先检测该后端在本环境
 是否真实存在——`skills/arbor-research-agent/`、`skills/autoscientist/`
 （或已配置的 launcher 路径）目录存在性检查。不可用后端**跳过并在
-research-state.yaml 注明"需要 Pro 部署"**；这不是科研否决门，只影响
+research-state.yaml 注明"该后端在本环境不可用"**；这不是科研否决门，只影响
 本环境可选菜单。
 
 **通用交接规则（任一路线命中后 REQUIRED）**：引擎身份、局部预算与停止
@@ -86,7 +86,7 @@ research-state.yaml；换引擎 = 新交接行，累计账不清零。
 ```
 BOOTSTRAP（一次，轻量）
   明确问题 → literature-review 摸底 → 形成初始假设 → 锁定评估标准
-  双闸门（REQUIRED，纪律内联于此；Pro 版有显式 rq-gates 协议文件）：
+  双闸门（REQUIRED，纪律内联于此）：
   Gate 0（输入模糊才触发，带证据引导的方向选择）；Gate 1（必过：FINER
   五维 + scope 边界 + 方法论蓝图 + 魔鬼代言人 checkpoint），PASS 前不
   进内循环。已有明确输入/已有结果时 Gate 0 不触发，写作任务不重新否决
