@@ -1,0 +1,6 @@
+.hero .eyebrow{color:var(--mint);font-size:12px;letter-spacing:2px}
+.hero h1.hero-brand-name,html[lang=en] .hero h1.hero-brand-name{font-size:clamp(88px,8.5vw,128px);letter-spacing:-6px;line-height:1.05;margin:24px 0 12px;color:var(--mint)}
+.hero-brand-promise{font-size:clamp(25px,2.5vw,35px);font-weight:500;letter-spacing:-.7px;line-height:1.35;margin:0 0 23px;color:var(--text)}
+.engine-card h3 .product-brand{display:block;font-size:36px;line-height:1.1;letter-spacing:-1.2px;color:var(--mint)}
+.engine-card h3 .engine-variant{display:block;font-size:22px;font-weight:500;line-height:1.3;letter-spacing:-.4px;margin-top:7px;color:var(--text)}
+@media(max-width:420px){.hero .eyebrow{font-size:10px;letter-spacing:1.4px}.hero h1.hero-brand-name,html[lang=en] .hero h1.hero-brand-name{font-size:88px;letter-spacing:-4px;margin-top:22px}.hero-brand-promise{font-size:24px;letter-spacing:-.6px}.engine-card h3 .product-brand{font-size:32px}.engine-card h3 .engine-variant{font-size:20px}}

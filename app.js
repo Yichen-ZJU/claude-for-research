@@ -1,5 +1,6 @@
 'use strict';
 const english={
+heroPromise:'From an idea. To a discovery.',
 coordinationOwner:"Coordinated work · Shared research state",
 stagePrepare:"Research & ideation",
 stageOptimize:"Experiments & optimization",

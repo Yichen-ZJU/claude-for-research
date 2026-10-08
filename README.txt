@@ -1,7 +1,7 @@
 LEMVO — BILINGUAL HOMEPAGE
 
 One research system. Two CLI engines.
-Claude for Research (Lemvo) / Codex for Research (Lemvo).
+Lemvo for Claude Code / Lemvo for Codex.
 
 Open index.html in a browser, or serve this folder with any static file server.
 No build, package installation, API keys, or external assets are required.
@@ -9,7 +9,7 @@ No build, package installation, API keys, or external assets are required.
 Files
   index.html          Page structure and Chinese copy
   styles.css          Base responsive dark theme and motion
-  lemnivo-brand.css   Shared brand accents and engine-title typography
+  lemvo-brand.css   Shared brand accents and engine-title typography
   research-stages.css  Research, optimization, and compact footer credits
   app.js              English copy, language switch, tabs, search, copy, and demo
   skills-data.js      115 shared skill entries, source links, 12 topic groups

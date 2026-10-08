@@ -5,27 +5,27 @@
   <meta name="theme-color" content="#101312">
   <meta name="description" content="Lemvo：一套自主科研体系，两种 CLI 引擎。115 个科研技能，由 Research Orchestrator 协调文献调研、构思、无人值守实验、写作与评审。">
   <meta property="og:title" content="Lemvo — One research system. Two CLI engines.">
-  <meta property="og:description" content="Lemvo powers Claude for Research and Codex for Research: 115 skills connecting literature, ideas, unattended experiments, reflection, and paper writing.">
+  <meta property="og:description" content="Lemvo for Claude Code and Lemvo for Codex share 115 skills connecting literature, ideas, unattended experiments, reflection, and paper writing.">
   <meta property="og:site_name" content="Lemvo">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://yichen-zju.github.io/claude-for-research/assets/social-cover.png?v=lemvo-1">
+  <meta property="og:image" content="https://yichen-zju.github.io/claude-for-research/assets/social-cover.png?v=lemvo-primary-2">
   <meta property="og:image:alt" content="Lemvo — One research system. Two CLI engines. The mint dual-loop logo.">
   <meta property="og:image:width" content="1600">
   <meta property="og:image:height" content="640">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Lemvo — One research system. Two CLI engines.">
   <meta name="twitter:description" content="115 research skills. Nested experiment and reflection loops. Claude Code + Codex CLI.">
-  <meta name="twitter:image" content="https://yichen-zju.github.io/claude-for-research/assets/social-cover.png?v=lemvo-1">
+  <meta name="twitter:image" content="https://yichen-zju.github.io/claude-for-research/assets/social-cover.png?v=lemvo-primary-2">
   <meta name="twitter:image:alt" content="Lemvo autonomous research system with the mint dual-loop logo">
   <link rel="canonical" href="https://yichen-zju.github.io/claude-for-research/">
   <title>Lemvo · 让想法，走到发现</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="lemnivo-brand.css">
+  <link rel="stylesheet" href="lemvo-brand.css?v=2">
   <link rel="stylesheet" href="research-stages.css">
   <link rel="stylesheet" href="workflow-demo.css">
   <script src="skills-data.js" defer></script>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=lemvo-primary-2" defer></script>
   <script src="workflow-demo.js" defer></script>
 </head>
 <body>
@@ -38,7 +38,8 @@
 <main id="main">
 <section class="hero container">
   <div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span><span data-i18n="heroEyebrow">LEMVO / AUTONOMOUS RESEARCH</span></div>
-  <h1><span data-i18n="heroLine1">让想法，</span><br><span class="mint" data-i18n="heroLine2">走到发现。</span></h1>
+  <h1 class="hero-brand-name">Lemvo</h1>
+  <p class="hero-brand-promise" data-i18n="heroPromise">让想法，走到发现。</p>
   <p class="hero-sub" data-i18n="heroSub">一套自主科研体系，两种 CLI 引擎。</p>
   <p class="hero-description" data-i18n="heroDescription">Lemvo 把 Claude Code 与 Codex CLI 变成自主科研工作台。由 Research Orchestrator 统筹深广度调研、Idea 构思、无人值守模型优化，再到写作与评审；115 个科研技能贯穿实验与反思的内外双循环。</p>
   <div class="hero-actions"><a class="button primary" href="#start"><span data-i18n="getStarted">开始你的研究</span><span aria-hidden="true">↗</span></a><a class="text-link" href="#walkthrough"><span data-i18n="seeLoop">看一遍完整流程</span><span aria-hidden="true">↓</span></a></div>
@@ -134,7 +135,7 @@
 </section>
 <section class="section container" id="engines">
   <div class="section-heading"><div><div class="eyebrow section-number">04 / TWO ENGINES. ONE RESEARCH MINDSET.</div><h2 data-i18n="enginesTitle">选择你的引擎，延续你的研究。</h2></div><p data-i18n="enginesDescription">同源的科研约定与技能设计，分别适配两种 CLI。用熟悉的工具，组织一套完整的研究流程。</p></div>
-  <div class="engine-grid"><article class="engine-card"><div class="engine-icon">✳</div><div><span class="mono-label">LEMVO / CLAUDE CODE</span><h3>Claude for Research <span class="brand-suffix">(Lemvo)</span></h3><p data-i18n="claudeDescription">115 个技能与 4 个专业子代理。用 Claude Code 原生 Agent、技能与会话内心跳，串联研究、实验、写作与评审。</p><a href="https://github.com/Yichen-ZJU/claude-for-research" target="_blank" rel="noopener noreferrer"><span>claude-for-research</span><span>↗</span></a></div></article><article class="engine-card"><div class="engine-icon code-symbol">&gt;_</div><div><span class="mono-label">LEMVO / CODEX CLI</span><h3>Codex for Research <span class="brand-suffix">(Lemvo)</span></h3><p data-i18n="codexDescription">同样的 115 个技能，适配 Codex CLI 的执行方式。后台实验作业、完成标志与项目记忆衔接长任务。</p><a href="https://github.com/Yichen-ZJU/codex-for-research" target="_blank" rel="noopener noreferrer"><span>codex-for-research</span><span>↗</span></a></div></article></div>
+  <div class="engine-grid"><article class="engine-card"><div class="engine-icon">✳</div><div><span class="mono-label">LEMVO / CLAUDE CODE</span><h3><span class="product-brand">Lemvo</span><span class="engine-variant">for Claude Code</span></h3><p data-i18n="claudeDescription">115 个技能与 4 个专业子代理。用 Claude Code 原生 Agent、技能与会话内心跳，串联研究、实验、写作与评审。</p><a href="https://github.com/Yichen-ZJU/claude-for-research" target="_blank" rel="noopener noreferrer"><span>claude-for-research</span><span>↗</span></a></div></article><article class="engine-card"><div class="engine-icon code-symbol">&gt;_</div><div><span class="mono-label">LEMVO / CODEX CLI</span><h3><span class="product-brand">Lemvo</span><span class="engine-variant">for Codex</span></h3><p data-i18n="codexDescription">同样的 115 个技能，适配 Codex CLI 的执行方式。后台实验作业、完成标志与项目记忆衔接长任务。</p><a href="https://github.com/Yichen-ZJU/codex-for-research" target="_blank" rel="noopener noreferrer"><span>codex-for-research</span><span>↗</span></a></div></article></div>
 </section>
 <section class="section container start-section" id="start"><div class="start-copy"><div class="eyebrow section-number">05 / YOUR NEXT QUESTION STARTS HERE</div><h2><span data-i18n="startTitle1">下一次发现，</span><br><span class="mint" data-i18n="startTitle2">从你的终端开始。</span></h2><p data-i18n="startDescription">装好并登录对应 CLI 后，在 Bash 环境中安装研究技能。保留已有配置的备份，然后开启一个新的研究会话。</p><div class="start-meta"><span class="status-dot"></span><span data-i18n="startMeta">源码公开 · 本地工作流 · 自有计算资源</span></div></div><div class="quickstart"><div class="install-tabs" role="tablist" aria-label="Install engine"><button id="install-claude" data-install="claude" role="tab" aria-selected="true" aria-controls="install-panel">Claude Code</button><button id="install-codex" data-install="codex" role="tab" aria-selected="false" tabindex="-1" aria-controls="install-panel">Codex CLI</button><span>BASH</span></div><div role="tabpanel" id="install-panel" aria-labelledby="install-claude"><div class="code-heading"><span data-i18n="installLabel">安装研究技能</span><button class="copy-button" id="copy-install" data-i18n="copy">复制</button></div><pre><code id="install-code"></code></pre><p class="install-note" data-i18n="installNote">这三行安装技能与研究约定。全文检索需另行配置 ArXiv MCP。</p><details id="mcp-details"><summary data-i18n="mcpSetup">配置 ArXiv MCP 全文检索</summary><p data-i18n="mcpNote">先安装 Python 与 pip；以下使用默认用户安装路径。Codex 需先启动一次以生成配置。</p><pre><code id="mcp-code"></code></pre><p data-i18n="mcpCheck">重启 CLI 并检查 arxiv 工具已加载。自定义安装路径需相应调整。</p></details><div class="first-prompt"><div class="mono-label" data-i18n="firstPromptLabel">然后，把第一个问题交给它</div><p data-i18n="firstPrompt">使用 research-orchestrator 开始研究：我的问题是……，可用预算是……，请先建立研究计划和评估标准。</p></div></div></div></section>
 <section class="container evidence-section" id="evidence"><details><summary><span data-i18n="evidenceTitle">来源与演示说明</span><span>＋</span></summary><div class="evidence-details"><p data-i18n="evidenceNote">技能数量核对于 2026-10-07：Claude 仓库 6582cc4，Codex 仓库 510c6d4，均包含相同的 115 个技能名称。终端动画是流程示意，12 组为本站的主题分类。</p><p data-i18n="autonomyNote">自主推进依赖已确认的课题、运行环境、预算及持续运行的 CLI 会话。两边技能名单相同，执行机制与部分流程细节按宿主适配。正式研究仍需研究者核验结论。</p><div class="evidence-links"><a href="https://github.com/Yichen-ZJU/claude-for-research/tree/6582cc4009522269e77becc6dbddb6b1a14e4500/skills" target="_blank" rel="noopener noreferrer">Claude · 6582cc4 ↗</a><a href="https://github.com/Yichen-ZJU/codex-for-research/tree/510c6d4652ff1c39e65b19b9e124b9f34281e2cb/skills" target="_blank" rel="noopener noreferrer">Codex · 510c6d4 ↗</a></div></div></details></section>

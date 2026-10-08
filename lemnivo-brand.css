@@ -1,3 +1,0 @@
-.hero .eyebrow{color:var(--mint);font-size:12px;letter-spacing:2px}
-.engine-card .brand-suffix{display:block;font-size:14px;letter-spacing:0;color:var(--mint);margin-top:4px}
-@media(max-width:420px){.hero .eyebrow{font-size:10px;letter-spacing:1.4px}.engine-card .brand-suffix{font-size:13px}}
