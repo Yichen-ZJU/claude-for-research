@@ -20,7 +20,7 @@ Columns:
 2. `timestamp` — ISO8601 UTC
 3. `commit` — short (7-char) git hash of the experiment commit
 4. `metric` — numeric result; `0.000000` for crashes
-5. `delta` — change vs previous keep (numeric; empty for baseline)
+5. `delta` — change vs **eval_baseline（预注册冻结的原基线）**；代码保留另对照 best_value（当前最佳实现）：delta>0 但 < best 时，成果记改进、代码不覆盖最佳。两口径分别是 research-state.yaml 的 eval_baseline / best_value 字段，禁止混用
 6. `guard` — `pass` / `fail` / `na` (no guard configured)
 7. `status` — `keep` / `discard` / `crash` / `no-op` / `blocked`
 8. `move` — strategy-table move: `follow` / `reverse` / `switch` /

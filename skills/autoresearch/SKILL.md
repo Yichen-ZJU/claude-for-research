@@ -8,7 +8,13 @@ argument-hint: <idea>
 
 自主实验循环。单策略表覆盖两种尺度：**参数级微调**（改大改小/换参数）和**架构级创新**（结构性改动）。
 
-分工：本 skill 负责**运行**循环。任务还没有可跑的任务包（锁定评估 + 开放文件 + program.md）时，先用 `experiment-forge` 锻造。
+分工：本 skill 负责**运行**循环。两种入口：
+- **完整任务包**（锁定评估 + 开放文件 + program.md，可交付的自驱包）→ 缺失时
+  用 `experiment-forge` 锻造；
+- **最小就地契约**（主控按"裸库直接迭代"路由到本 skill 时）→ **不造包**：
+  就地生成/接受最小运行契约即可开跑——评测命令 + 指标名/单位/方向 +
+  循环边界（maxIterations/timeout）写进 `autoresearch.md` 即算契约成立，
+  不强制 program.md 与开放文件结构。
 
 Session files: `autoresearch.md`, `autoresearch.sh`, `autoresearch.jsonl`, `results.tsv`, `run-<N>.log`.
 

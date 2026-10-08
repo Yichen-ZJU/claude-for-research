@@ -25,9 +25,15 @@ argument-hint: <research-question-or-project-dir>
 | **续跑现有循环** | 工作区存在 `<pkg>/program.md`（forge 产物）或 `autoresearch.md`/`autoresearch.jsonl` | `autoresearch` 续跑/刷点；不重新造包、不起其他引擎 |
 | **新课题 forge 起跑** | 研究想法 + 代码库，无上述循环文件，且**需要可交付的自驱实验包**（无人值守/跨机交接） | `experiment-forge` 造包（锁定评估+开放文件+契约随包）→ autoresearch 执行；不需要交付包时可直接走下面的迭代路线 |
 | **裸库直接迭代** | 研究想法 + 可迭代代码库，无循环文件，不需要交付包 | autoresearch 就地工作（就地生成运行契约/评测命令即可）；forge 可选不强制 |
-| **SOTA 复现改进** | 任务有明确评测基准/榜单 + 存在可信 SOTA 公开实现 + 改进空间是增量型（方法/训练/效率），非全新范式 | 调研产物=候选 SOTA 清单（论文+官方代码+已报告指标，按可信度排序）；复现**限时**，目标"能跑通+指标量级对上"（复现值在报告值 ±5% 内），失败两次换实现或降级为"以官方 checkpoint 为基线"；autoresearch 直接在 SOTA 代码库上迭代（最小化改造，不重新造实验框架）；KEEP/DISCARD 以"是否超过已复现 SOTA 基线"为准，基线数字预注册时冻结 |
+| **SOTA 复现改进** | 任务有明确评测基准/榜单 + 存在可信 SOTA 公开实现 + 改进空间是增量型（方法/训练/效率），非全新范式 | 调研产物=候选 SOTA 清单（论文+官方代码+已报告指标，按可信度排序）；复现**限时**，目标"能跑通+指标量级对上"（复现值在报告值 ±5% 内），失败两次换实现或降级为"以官方 checkpoint 为基线"；autoresearch 直接在 SOTA 代码库上迭代（最小化改造，不重新造实验框架）；KEEP/DISCARD 以"是否超过 eval_baseline（预注册冻结的复现 SOTA 基线）"为准；代码保留对照 best_value（当前最佳实现）——两者是 research-state.yaml 的两个独立字段，92<93 时成果记改进、代码不覆盖最佳 |
 | **假设树深挖**（Pro） | 单一核心目标 + 允许多分支并行探索与剪枝 | Arbor（`arbor-research-agent` 入口） |
 | **团队多方案竞争**（Pro） | 单一优化项目或开放方向均可——团队内部提多方案互评竞争；用户点名团队作战时优先 | AutoScientists（autoscientist/ 启动器）；与 Arbor 不互斥，按任务性质二选一或接力 |
+
+**可用性过滤（先于偏好选择）**：选择路线前先检测该后端在本环境
+是否真实存在——`skills/arbor-research-agent/`、`skills/autoscientist/`
+（或已配置的 launcher 路径）目录存在性检查。不可用后端**跳过并在
+research-state.yaml 注明"需要 Pro 部署"**；这不是科研否决门，只影响
+本环境可选菜单。
 
 **通用交接规则（任一路线命中后 REQUIRED）**：引擎身份、局部预算与停止
 标准（autoresearch maxIterations/timeout；Arbor cycle cap/收益递减；
@@ -36,7 +42,7 @@ research-state.yaml；换引擎 = 新交接行，累计账不清零。
 
 | 研究活动 | 路由到 |
 |---|---|
-| 文献调研 / 综述 | `literature-review` skill + alphaxiv MCP（`discover_papers` 等） |
+| 文献调研 / 综述 | `literature-review` skill + arXiv MCP 全文工具链（`search_papers` / `download_paper` / `search_paper_text`；alphaxiv 可用时按降级政策增强） |
 | 长文档/PDF 精读 | `summarize`、`pdf-explore` |
 | 假设头脑风暴 | `brainstorming-research-ideas`、`creative-thinking-for-research` |
 | 任务包锻造（锁定评估+开放文件） | `experiment-forge` |

@@ -28,10 +28,29 @@ hypotheses:
   #   parent: null                # null for root, parent ID (e.g., H1) for sub-hypotheses
   #   priority: medium            # high | medium | low
 
+# 累计预算总账（跨后端连续；换后端不清零——第六轮预算下传机制的落点）
+budget:
+  unit: "gpu_hours"               # 资源单位（gpu_hours | usd | wall_hours）
+  total_cap: null                 # 本研究目标的累计上限
+  used: 0.0                       # 已消耗（跨后端合计）
+  remaining: null                 # = total_cap - used；null 表示未设上限
+
+# 后端交接日志（每次切换/启动引擎追加一行，不覆盖）
+backend_ledger: []
+# - timestamp: ""
+#   backend: "autoresearch | arbor | autoscientists | forge"
+#   handoff: ""                   # 交接时传入的局部预算与停止标准
+#   local_cap: null
+#   local_used: 0.0
+#   note: ""                      # 例如 "需要 Pro 部署——本环境不可用，跳过"
+
 experiments:
   proxy_metric: ""                # What we're optimizing and how to compute it
-  baseline_value: null            # Starting point
-  best_value: null                # Best achieved so far
+  # 修复5 KEEP 口径拆分（三处规则统一引用本两字段）：
+  eval_baseline: null             # 成果评估对照 = 预注册冻结的原基线
+                                  # （KEEP/DISCARD 判定用：候选 > eval_baseline 记改进）
+  best_value: null                # 代码保留对照 = 当前最佳实现
+                                  # （分支前进/回滚用：候选 < best_value 不覆盖最佳代码）
   total_runs: 0
   trajectory: []
   # - run_id: "run_001"
