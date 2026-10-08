@@ -52,3 +52,7 @@ codex 0.160.0 字段报告驱动：experiment-forge 补 description（0.160.0 �
 ## 2026-10-09 路由哲学修正 + SOTA 复现改进路线
 
 路线改菜单制（判据可验证、裁决在 orchestrator、用户指定优先）；撤销"新课题必须先 forge"的刚性条款（裸库 autoresearch 合法）；AutoScientists 双用途（撒网 + 单项目多方案竞争，与 Arbor 不互斥）；新增 SOTA 复现改进路线（限时复现 ±5% 量级对上→官方 checkpoint 降级→SOTA 代码库上直接迭代，基线预注册冻结）。
+
+## 2026-10-09 路由执行链接线（六项）
+
+autoresearch 最小就地契约与 Forge 解耦；公开菜单可用性过滤（目录存在性先于偏好）；codex-pro AutoScientists 交接规格（TASK.md 四字段+LAUNCH.md 底稿+launcher 路径）；research-state.yaml 累计预算总账与 backend_ledger；KEEP 口径拆分为 eval_baseline/best_value 两字段（主控+契约+模板三处统一）；文献路由改 ArXiv MCP 全文链。arbor 文档示例改绝对解释器（140.16 glibc 墙）并实测调用链。
