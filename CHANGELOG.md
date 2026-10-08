@@ -44,3 +44,7 @@
 ## 2026-10-03 评审语义修正：近邻存在 ≠ 否决
 
 idea-evaluator 与 research-orchestrator 各增一节"近邻存在 ≠ 否决 / Neighbors are not a veto"：发现近邻/竞品不是否决或降档理由，而是触发 delta 声明（点名的最近邻 + 明确增量 + 机制故事 + 失败模式预期）的信号；delta 清晰则照常过 Gate，delta 模糊才 PIVOT。修正了"发现近邻→降分/绕开"的隐性偏置。v1.2 增量构思（incremental-ideation）的前置补丁。
+
+## 2026-10-09 装载器修复 + 实验路由自动选择
+
+codex 0.160.0 字段报告驱动：experiment-forge 补 description（0.160.0 必填、argument-hint 可选）；全舰队 589 个 SKILL.md 按最严 schema lint 清零（含 anti-defensive-writing-en 的 frontmatter 内嵌段修复）；orchestrator 增加可验证的实验引擎分流判据（有包/有会话→autoresearch；新课题无包→先 forge；pro 单目标→Arbor、开放方向→AutoScientists），交接显式传预算与停止条件。138.6/140.30 热修文本与上游统一。
