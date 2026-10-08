@@ -1,8 +1,8 @@
-<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/"><img src="assets/research-cover.png?v=lemvo-agent-3" alt="Lemvo for Claude Code — A research agent that thinks and acts." width="100%"></a></p>
+<p align="center"><a href="https://yichen-zju.github.io/lemvo/"><img src="assets/research-cover.png?v=lemvo-agent-3" alt="Lemvo for Claude Code — A research agent that thinks and acts." width="100%"></a></p>
 
 <h1 align="center">Lemvo for Claude Code</h1>
 <p align="center"><strong>会思考、会行动的科研 Agent。<br>A research agent that thinks and acts.</strong><br>一套科研体系，两种 CLI 引擎。 / One research system. Two CLI engines.</p>
-<p align="center"><a href="https://yichen-zju.github.io/claude-for-research/?lang=zh">Lemvo 中文主页</a> · <a href="https://yichen-zju.github.io/claude-for-research/?lang=en">Lemvo in English</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Lemvo for Codex</a></p>
+<p align="center"><a href="https://yichen-zju.github.io/lemvo/?lang=zh">Lemvo 中文主页</a> · <a href="https://yichen-zju.github.io/lemvo/?lang=en">Lemvo in English</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Lemvo for Codex</a></p>
 <p align="center"><img src="https://img.shields.io/badge/skills-115-B7F7D4?style=flat-square&amp;labelColor=101312" alt="115 skills"> <img src="https://img.shields.io/badge/engine-Claude%20Code-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Claude Code"> <img src="https://img.shields.io/badge/workflow-research%20%E2%86%92%20experiments%20%E2%86%92%20papers-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Research to experiments to papers"></p>
 
 **Lemvo** 是运行在 Claude Code 与 Codex CLI 上的自主科研 Agent。**Lemvo for Claude Code** 从研究问题出发：读文献、提出构想、选择实验路线、构建和改进方法，再结合结果解释现象、修订假设，组织论文与评审。**Research Orchestrator** 协调这套思考与行动的双循环，**115 个科研技能**提供工作流与领域方法。
@@ -63,7 +63,7 @@ Search papers, download full text, and check load-bearing claims inside the pape
 
 覆盖研究设计、实验、写作、评审、生物与分子模型、训练与对齐、多模态、模型效率、可解释性、科研图表、评测和算力追踪 **12 个分组**。例如 `alphafold2`、`peft`、`deepspeed`、`llava`、`flash-attention`、`transformer-lens`、`lm-evaluation-harness` 和 `mlflow`。
 
-The 115 total skills span **12 groups**, including research workflows, biological models, training and alignment, multimodal models, efficiency, interpretability, figures, evaluation, and compute. [Browse the searchable skill catalogue →](https://yichen-zju.github.io/claude-for-research/#skills)
+The 115 total skills span **12 groups**, including research workflows, biological models, training and alignment, multimodal models, efficiency, interpretability, figures, evaluation, and compute. [Browse the searchable skill catalogue →](https://yichen-zju.github.io/lemvo/#skills)
 
 <a id="quickstart"></a>
 ## 快速开始 / Quickstart
@@ -91,7 +91,7 @@ claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 
 > Use research-orchestrator to improve a handwritten-digit classifier and investigate why the changes work. Research the literature, develop ideas, and choose a baseline and experiment route: run autoresearch directly on existing code, or use experiment-forge when a task package is needed. Iterate methods, test explanations, and assemble code, figures, findings, and a paper draft.
 
-[在主页观看内外双循环动画 / Watch the nested-loop workflow →](https://yichen-zju.github.io/claude-for-research/#walkthrough)
+[在主页观看内外双循环动画 / Watch the nested-loop workflow →](https://yichen-zju.github.io/lemvo/#walkthrough)
 
 <sub>感谢开源仓库 / Thanks to [autoresearch](https://github.com/karpathy/autoresearch), [Feynman](https://github.com/Companion-Inc/feynman), and [AI Research Skills](https://github.com/Orchestra-Research/AI-Research-SKILLs). 各组件许可见原始文件与仓库 / Component licenses remain in their source files and repositories.</sub>
 
