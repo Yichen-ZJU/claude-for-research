@@ -28,6 +28,16 @@ hypotheses:
   #   parent: null                # null for root, parent ID (e.g., H1) for sub-hypotheses
   #   priority: medium            # high | medium | low
 
+# 准备循环总账（跨会话/重启/后端累计；重命名 phase/slug 不清零）
+prep:
+  prep_turns: 0                  # 距上次有信息量观测的准备轮数
+  prep_wall_time_min: 0.0        # 累计准备墙钟（分钟）
+  prep_cost: null                # 可取得的 token/费用估计
+  last_informative_observation: ""  # 上次有效进展是什么（何时）
+  ready_blocker: ""              # 未就绪的具体阻塞 + 解除条件
+  next_min_probe: ""             # 就绪后的最小真实 probe 描述
+  session_id: null               # 外层循环续接会话 id（按项目持久化）
+
 # 累计预算总账（跨后端连续；换后端不清零——第六轮预算下传机制的落点）
 budget:
   unit: "gpu_hours"               # 资源单位（gpu_hours | usd | wall_hours）
