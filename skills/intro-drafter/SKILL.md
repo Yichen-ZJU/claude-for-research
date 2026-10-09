@@ -79,6 +79,13 @@ to deliver it.
 跳过起草，改为检查现有 Intro 与主线的对齐（问题是否同一、挑战与
 贡献是否服务主线、结尾落点是否一致）并给出修订意见，不重启流程。
 
+**骨架选择**：无叙事计划或计划未指定骨架时，默认使用本技能的常规
+六段 flowchart。若叙事计划指定了其他行文骨架（见 `paper-narrative`
+的 `references/conventional-structures.md`，如 benchmark 论文的六段
+Evaluation-Gap 骨架），各段内容服从指定骨架的段落功能；integrity
+gate 相应按"论证功能是否都有着落"检查，不查段落数。benchmark 论文
+本体仍优先整包走 `benchmark-paper-template`（见 When NOT to use）。
+
 ### Step 1: Paper-type positioning
 
 See: references/paper-types.md for the Technique versus New

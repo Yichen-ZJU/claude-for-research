@@ -60,3 +60,11 @@ autoresearch 最小就地契约与 Forge 解耦；公开菜单可用性过滤（
 ## 2026-10-09 准备循环失控修复
 
 真续接（codex exec resume + 项目级持久化会话 id，禁 --last，冷启动发状态摘要不发裸 continue）；准备预算跨重启累计（prep 六字段入 state 模板）；READY_TO_PROBE 就绪即启真实最小 probe；审查限界（门上限+新增门须论证、分级审查、审计不递归、可阻塞/不可阻塞清单）；修复重试政策（真实改动+新信息，替代一刀切）。GPT 事实裁定全部独立复核通过（账本 38.7408 GPU·h 复算一致）。活体战役脚本未动，参考外层脚本作 drop-in 交付。
+## 2026-10-09 常规叙事骨架并入 paper-narrative（范式×骨架正交，verified）
+
+- 新增 skills/paper-narrative/references/conventional-structures.md：骨架 1 技术类方法论论文常规六段（intro-drafter 六段 + Supervisor 写作手册 3.2/3.3 思考模型同源合并）；骨架 2 benchmark/evaluation 论文六段（benchmark-paper-template paper-structure，主轴 Evaluation Gap + Design Rationale，与范式 4"新基准暴露失效"区分且可叠加）；骨架 3 类型骨架指针（systems/ml/research-paper-writing）；范式×骨架组合规则（范式=论证立场、骨架=行文组织，正交可组合；benchmark 论文不得误路由成"另造新范式"）。
+- paper-narrative/SKILL.md：Step 0 问题 5 扩为"主线与骨架"双问；Step 1 增行文骨架选择（技术类默认常规六段、benchmark 默认骨架 2）；Step 3 交接随计划带骨架。
+- story-patterns.md：顶部增范式/骨架正交说明；范式 4 增与 benchmark 行文骨架的区分段。
+- intro-drafter/SKILL.md Step 0：主线对接保留，新增骨架选择（默认六段 flowchart，叙事计划可指定其他骨架；integrity gate 仍 function-based，段落数永不是发现）。
+- 行为验收（独立代理，5/5 PASS，行级证据）：技术论文任务→计划同时给立场+六段骨架；benchmark 任务→骨架 2 优先不误入范式选择；根因手术刀×六段组合不冲突；round-12 A/B/C 实验路由回归不破；审查纪律回归（骨架非硬门槛、pre-submission-reviewer 零触碰）。fm_lint 四仓 115/115/178/181 全 0 缺陷。记录：/home/yyc/outputs/lemvo-narrv2-20261009/。
+
