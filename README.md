@@ -5,70 +5,130 @@
 <p align="center"><a href="https://yichen-zju.github.io/lemvo/?lang=zh">Lemvo 中文主页</a> · <a href="https://yichen-zju.github.io/lemvo/?lang=en">Lemvo in English</a> · <a href="#quickstart">Quickstart</a> · <a href="https://github.com/Yichen-ZJU/codex-for-research">Lemvo for Codex</a></p>
 <p align="center"><img src="https://img.shields.io/badge/skills-115-B7F7D4?style=flat-square&amp;labelColor=101312" alt="115 skills"> <img src="https://img.shields.io/badge/engine-Claude%20Code-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Claude Code"> <img src="https://img.shields.io/badge/workflow-research%20%E2%86%92%20experiments%20%E2%86%92%20papers-B7F7D4?style=flat-square&amp;labelColor=101312" alt="Research to experiments to papers"></p>
 
-**Lemvo** 是运行在 Claude Code 与 Codex CLI 上的自主科研 Agent。**Lemvo for Claude Code** 从研究问题出发：读文献、提出构想、选择实验路线、构建和改进方法，再结合结果解释现象、修订假设，组织论文与评审。**Research Orchestrator** 协调这套思考与行动的双循环，**115 个科研技能**提供工作流与领域方法。
+**Lemvo** 把研究思考与实际行动接在一起：理解问题、读透文献、构建方法、选择实验，再根据结果修订下一步。**Research Orchestrator** 协调 **115 个科研技能**，通过内外双循环推进从构想到发现、再到论文的研究过程。
 
-选择 **Claude Code** 或 **Codex CLI**，保留同一套 Lemvo 科研流程。两个仓库各含 **115 个技能，技能名称集合一致**；工具调用与运行机制分别适配各自引擎。
+**Lemvo** connects research reasoning with action: understand a question, investigate the literature, build methods, choose experiments, and learn what to do next. **Research Orchestrator** coordinates **115 research skills** through two nested loops, carrying ideas into findings and findings into papers.
 
-**Lemvo** is an autonomous research agent for **Claude Code** and **Codex CLI**. **Lemvo for Claude Code** starts with a research question: investigate the literature, develop ideas, choose an experiment route, build and improve methods, then interpret results, revise hypotheses, and shape the paper. **Research Orchestrator** coordinates this cycle of thinking and acting, supported by **115 research skills**. The same skill catalogue runs on Codex CLI, with engine-specific tool adaptations.
+<p align="center"><a href="#workflow">双循环 / Two loops</a> · <a href="#routes">自主选路 / Research routes</a> · <a href="#continuity">持续研究 / Continuity</a> · <a href="#writing">论文叙事 / Paper Narrative</a> · <a href="#quickstart">开始使用 / Get started</a></p>
 
+## 从问题出发，让研究向前 / Move research forward
+
+| 工作 / Work | Lemvo 如何推进 / How Lemvo moves it forward |
+|---|---|
+| **选路 / Choose** | 从新构想、已有代码或 SOTA 复现出发，按问题与项目状态选择路线。 / Start from an idea, existing code, or a SOTA implementation; choose a route for the question and project state. |
+| **行动 / Act** | 设计小试、实现方法、运行评测；需要独立交付时再锻造自驱任务包。 / Design a probe, implement a method, and evaluate it; forge a standalone task package when needed. |
+| **学习 / Learn** | 综合成功与失败，定位具体问题，把诊断落实成方法改动，再验证。 / Connect successes and failures, diagnose a specific issue, revise the method, and test again. |
+| **表达 / Write** | 把核心发现、证据、图序与全文组织成一条共享叙事。 / Shape the finding, evidence, figures, and manuscript into one coherent scientific story. |
+
+<a id="workflow"></a>
 ## 一套流程，两层循环 / One workflow, two loops
 
 ```mermaid
 flowchart TD
-  Q[研究问题 / Research question] --> L[文献与构思 / Literature and ideas]
-  L --> E{选择实验路线 / Choose a route}
-  E -->|需要自驱任务包 / Package needed| F[Experiment Forge: task package]
-  E -->|已有可迭代代码 / Existing code| M
-  subgraph INNER[内循环 / Inner experiment loop]
-    M[构建或改进方法 / Build or improve] --> T[运行与测量 / Run and measure]
-    T --> K[保留或回滚 / Keep or revert]
+  Q["研究问题 / Research question"] --> L["文献与构思 / Literature and ideas"]
+  L --> E{"选择实验路线 / Choose a route"}
+  E -->|"已有代码或基线 / Existing code or baseline"| M
+  E -->|"需要独立任务包 / Package needed"| F["Experiment Forge"]
+  F --> M
+  subgraph INNER["内循环 / Build and test"]
+    M["构建或改进方法 / Build or revise"] --> T["运行与测量 / Run and measure"]
+    T --> K["保留、回滚与记录 / Keep, revert, record"]
     K --> M
   end
-  F --> M
-  K --> R[外循环反思 / Reflect]
-  R --> D{DEEPEN / BROADEN / PIVOT / CONCLUDE}
-  D -->|改方法、再验证 / Revise and retest| M
-  D -->|调研与新假设 / Investigate| L
-  D -->|收尾 / Conclude| W[图表、论文与评审 / Figures, paper and review]
+  K --> R["外循环 / Interpret findings"]
+  R -->|"诊断后改方法 / Diagnose and revise"| M
+  R -->|"新的问题与假设 / New questions"| L
+  R -->|"综合与交付 / Synthesize and deliver"| D["代码、结果与研究发现 / Code, results, findings"]
+  D -->|"形成论文论证 / Paper-ready argument"| W["Paper Narrative → Paper Production"]
 ```
 
-**内循环检验与迭代方法，外循环理解结果并推进研究。** Orchestrator 根据问题与项目状态安排实验、识别结果中的模式，决定下一步深挖机制、改进方法、拓宽问题或收尾。模型优化时，Autoresearch 在约定范围与预算内执行改→测→留/滚；机制探索时，实验用于检验假设、解释现象。每一轮都回到研究问题与证据。
+**内循环把方法做出来、把假设测清楚；外循环解释发现、修订方法并选择下一步。** 模型优化时，Autoresearch 执行改→测→留/滚；探索研究时，实验用于区分解释、检验假设。Orchestrator 据此选择 **DEEPEN / BROADEN / PIVOT / CONCLUDE**，让一次实验成为下一轮研究的起点。
 
-**The inner loop tests and iterates methods; the outer loop makes sense of the results and steers the research.** Orchestrator chooses experiments for the question and project state, connects findings, and decides whether to investigate a mechanism, revise a method, broaden the question, or conclude. For model optimization, Autoresearch runs modify→measure→keep/revert within the agreed scope and budget. For discovery, experiments test hypotheses and explain phenomena.
+**The inner loop builds methods and tests hypotheses; the outer loop interprets findings, revises methods, and chooses the next step.** Autoresearch runs modify→measure→keep/revert for optimization. Discovery experiments distinguish explanations and test hypotheses. Orchestrator chooses **DEEPEN / BROADEN / PIVOT / CONCLUDE**, turning one experiment into the starting point for the next.
 
-## 从调研到论文 / From evidence to a paper
+[观看手写数字例子的双循环动画 / Watch the two-loop example →](https://yichen-zju.github.io/lemvo/#walkthrough)
 
-| 阶段 / Stage | 能力 / Capability | 代表技能 / Skills |
-|---|---|---|
-| 调研与构思 / Research & ideation | 广度扫描、全文核验、跨领域构思、选题评价 / Map the field, verify full text, generate and evaluate ideas | `deep-research`, `literature-review`, `brainstorming-research-ideas`, `creative-thinking-for-research`, `idea-evaluator` |
-| 实验与方法迭代 / Experiments & method development | 选择路线、设计验证、复现基线、迭代方法；按需构造自驱任务包 / Choose a route, design tests, reproduce baselines and iterate methods; package unattended work when needed | `experiment-forge`, `autoresearch`, `run-experiment`, `experiment-queue`, `experiment-watchdog` |
-| 写作与评审 / Writing & review | 叙事规划、科研图表、论文起草、引用核验、对抗性评审 / Plan the narrative, build figures, draft, verify citations and review | `paper-production`, `paper-writing`, `paper-narrative`, `academic-plotting`, `research-review`, `paper-code-audit` |
-| 全程协调 / Orchestration | 维护研究状态、累计预算与发现；解释结果，安排下一轮行动，推动成果收尾 / Maintain state, cumulative budgets and findings; interpret results, choose the next action and assemble deliverables | `research-orchestrator` |
+<a id="routes"></a>
+## 按课题选路，而不是套固定流程 / Routes, not a rigid pipeline
 
-### 自主实验：直接迭代或锻造任务包 / Direct iteration or a task package
+| 起点 / Starting point | 路线 / Route |
+|---|---|
+| **一个问题或构想 / A question or idea** | 广度调研 → 全文精读 → 候选方法 → 小试与假设验证。 / Map the field → investigate full text → develop a method → probe and test. |
+| **已有可迭代代码 / An existing codebase** | Autoresearch 就地建立运行约定与评测入口，直接迭代方法。 / Autoresearch establishes the run contract and evaluation, then iterates in place. |
+| **可信 SOTA 实现 / A credible SOTA implementation** | 调研选基线 → 限时复现 → 冻结对照 → 在原代码上改进。 / Select a baseline → bound reproduction → freeze the comparison → improve the existing code. |
+| **需要独立交付 / A standalone package** | Experiment Forge 锻造 Karpathy 式任务包 → Autoresearch 自驱实验。 / Experiment Forge builds a Karpathy-style task package → Autoresearch runs the experiment loop. |
 
-Orchestrator 根据任务选择起跑方式：已有可迭代代码库时，**Autoresearch 可以直接上手**；需要可交付、可跨机接力的无人值守实验包时，**Experiment Forge** 将构想锻造成 **Karpathy 式任务包**。其中 `program.md` 说明目标、预算和边界，固定数据与评估入口，明确可修改的模型或训练文件，准备依赖与结果记录。Autoresearch 在给定算力与时间内探索模型结构、训练策略等改动，以准确率、损失或吞吐等指定指标指导保留与回滚。
+已有运行契约与实验台账时，继续现有循环；**Forge 是按需选择，不是每个项目的必经门槛。** 用户指定的路线优先于自动选择。
 
-Orchestrator chooses how to start. **Autoresearch can work directly in an existing codebase**. When the project needs a transferable, unattended experiment package, **Experiment Forge** builds a **Karpathy-style task package**: a `program.md` brief, a fixed evaluation, editable model or training files, dependencies, and a result ledger. Autoresearch explores model and training changes within the compute and time budget, using the chosen metric to guide what to keep or revert.
+Resume an existing loop when its run contract and ledger are present. **Forge is an option, not a mandatory first step.** An explicit user route takes precedence.
 
-**SOTA 复现改进**：从可信论文与官方实现选择基线，限时复现，再直接在现有代码上迭代，比较已冻结的基线。 / **SOTA reproduction and improvement**: choose a baseline from credible papers and official implementations, bound the reproduction effort, then iterate in that codebase against the frozen baseline.
+### Experiment Forge + Autoresearch
 
-### ArXiv MCP · 全文级证据 / Full-text evidence
+Forge 把构想锻造成可运行、可交接的任务包：`program.md` 写清目标、预算与边界，固定数据和评测入口，开放模型或训练文件，准备依赖与结果台账。Autoresearch 在约定范围内提出改动、运行评测、保留有效改进并回滚退步；准确率、损失和效率是可选择的优化目标，而实验也可以服务于机制与假设验证。
 
-`search_papers → download_paper → search_paper_text`：先检索，再下载全文，在文内核验关键声明。来源、版本与 provenance 跟随产物保存，让结论可以回到原文检查。
+Forge turns an idea into a runnable, transferable task package: `program.md` defines the goal, budget, and scope; evaluation is fixed; model or training files remain editable; dependencies and a results ledger travel with the package. Autoresearch proposes changes, evaluates them, keeps improvements, and reverts regressions within scope. Accuracy, loss, and efficiency can guide optimization; experiments also investigate mechanisms and test hypotheses.
 
-Search papers, download full text, and check load-bearing claims inside the paper. Sources, versions and provenance travel with the outputs so the evidence can be inspected.
+[任务包规范 / Task-package specification](skills/experiment-forge/SKILL.md) · [自主实验循环 / Autoresearch](skills/autoresearch/SKILL.md)
 
-### 115 个技能 / 115 research skills
+<a id="continuity"></a>
+## 为持续研究设计 / Built for research that continues
 
-覆盖研究设计、实验、写作、评审、生物与分子模型、训练与对齐、多模态、模型效率、可解释性、科研图表、评测和算力追踪 **12 个分组**。例如 `alphafold2`、`peft`、`deepspeed`、`llava`、`flash-attention`、`transformer-lens`、`lm-evaluation-harness` 和 `mlflow`。
+| 能力 / Capability | 如何落地 / How it works |
+|---|---|
+| **研究记忆 / Research memory** | `research-state.yaml`、`findings.md` 与决策日志保存问题、发现、预算和下一步；续接先读已有状态。 / State, findings, and decision logs preserve the question, discoveries, budget, and next action. |
+| **从准备走向小试 / From preparation to a probe** | 实现可跑、评测单位与尺度有效、预算允许时，启动最小真实探针；准备阶段有累计记录与决策点。 / Start the smallest real probe when the implementation runs, measurement is valid, and budget permits; preparation has a ledger and decision points. |
+| **把诊断变成改动 / Diagnose, revise, retest** | 测量失灵先修测量，实现有错先修实现；候选无效则改方法或换候选，并保留当前最佳。 / Repair a broken measurement or implementation; revise or replace an ineffective candidate while retaining the best result. |
+| **资源贯穿全程 / Budget across the project** | 续跑、转向与交接沿用累计资源记录；到达边界时明确继续、收窄或收尾，并交付已有成果。 / Carry resource records through continuation, pivots, and handoffs; at a boundary, explicitly continue, narrow, or conclude with the work preserved. |
 
-The 115 total skills span **12 groups**, including research workflows, biological models, training and alignment, multimodal models, efficiency, interpretability, figures, evaluation, and compute. [Browse the searchable skill catalogue →](https://yichen-zju.github.io/lemvo/#skills)
+有信息量的阴性结果也是进展：它排除一种解释、限定一种方法，或指出下一次改动。研究收尾交付代码、结果与已知发现；论文写作由论证的成熟度决定。
+
+An informative negative result is progress: it rules out an explanation, bounds a method, or points to the next change. Research can conclude with code, results, and findings; a paper follows when the argument is ready.
+
+[研究总控与准备纪律 / Orchestration and preparation rules](skills/research-orchestrator/SKILL.md) · [研究状态模板 / Research-state template](skills/research-orchestrator/templates/research-state.yaml)
+
+<a id="literature"></a>
+## 读透文献，构思有据 / Full-text research, evidence-led ideas
+
+**ArXiv MCP** 提供全文工具链：`search_papers → download_paper → search_paper_text`。先梳理方法版图，再下载关键论文，在文内核验承重声明；版本、来源与 provenance 随产物保存。构思技能通过跨领域类比、反转假设和问题重构，把文献中的分歧与空白转成可检验的方法。
+
+**ArXiv MCP** connects search, full-text retrieval, and in-paper evidence checks. Map the field, investigate the papers that matter, and keep versions, sources, and provenance with the outputs. Ideation skills transfer ideas across fields, invert assumptions, and turn unresolved questions into testable methods.
+
+[调研 / Deep Research](skills/deep-research/SKILL.md) · [文献综述 / Literature Review](skills/literature-review/SKILL.md) · [构思 / Research Ideas](skills/brainstorming-research-ideas/SKILL.md)
+
+<a id="writing"></a>
+## Paper Narrative：让发现有主线 / Give the discovery a coherent story
+
+**Paper Narrative** 从核心贡献出发，建立一份共享叙事计划，组织问题、洞见、方法、主张与证据。摘要抓住核心发现，Introduction 建立问题张力，章节与图序推进论证，结尾回答开篇问题、留下新的认识。后续发现改变时，计划与全文一起对齐。
+
+**Paper Narrative** starts with the contribution and creates one shared narrative plan connecting the question, insight, method, claims, and evidence. The abstract captures the finding; the introduction establishes the problem; sections and figures advance the argument; the conclusion answers the opening question. As findings evolve, the plan and manuscript evolve together.
+
+| 叙事路线 / Narrative lens | 论证重点 / Argument |
+|---|---|
+| 根因手术刀 / Root-cause scalpel | 从失效现象走向机制解释与针对性设计。 / Connect a failure pattern to its mechanism and a targeted design. |
+| 反直觉重构 / Counter-intuitive reframing | 重审默认设定，建立更有解释力的视角。 / Revisit a default assumption and establish a more useful perspective. |
+| 理论照亮经验 / Theory illuminates practice | 用形式化结果建立新的理解。 / Use formal results to establish a new understanding. |
+| 新基准暴露失效 / Benchmarks expose failure | 把被忽略的问题变成可测量、可解释的发现。 / Make overlooked failures measurable and interpretable. |
+| 社会价值叙事 / Societal value | 围绕真实需求解释技术选择与应用价值。 / Connect technical choices to real needs and application value. |
+| 极简统一美学 / A unifying principle | 用共同原则串起多个问题与结果。 / Connect multiple problems and results through one principle. |
+
+主线按贡献选择、融合；效率改进等工作也可以采用自身最清晰的证据叙事。**Paper Production** 接续全文起草、科研图表、引用核验与写作评审，把研究记录推进到论文交付。
+
+Choose or combine lenses for the contribution; an efficiency paper can use a direct efficiency narrative. **Paper Production** connects drafting, scientific figures, citation verification, and writing review to deliver the manuscript.
+
+[Paper Narrative](skills/paper-narrative/SKILL.md) · [Paper Production](skills/paper-production/SKILL.md) · [在主页查看写作能力 / Explore writing on the homepage →](https://yichen-zju.github.io/lemvo/#write)
+
+## 115 个技能，两种引擎 / 115 skills, two engines
+
+两个仓库各含 **115 个技能，名称集合一致**。研究约定与流程同源，工具调用、子代理与续接机制按宿主适配。覆盖研究、实验、写作、评审、生物模型、训练与对齐、多模态、模型效率、可解释性、图表、评测和算力管理 **12 个主题分组**。
+
+Both repositories contain **115 skills with the same names**. Research conventions and workflows are shared; tool use, subagents, and continuation are adapted to each CLI. The catalogue spans **12 curated groups** across research workflows and specialist methods.
+
+[浏览可搜索技能库 / Browse the searchable skill catalogue →](https://yichen-zju.github.io/lemvo/#skills)
 
 <a id="quickstart"></a>
 ## 快速开始 / Quickstart
 
-先安装并登录 Claude Code，然后在 Bash 环境中运行： / Install and sign in to Claude Code, then run in Bash:
+先安装并登录 Claude Code，再在 Bash 环境中运行： / Install and sign in to Claude Code, then run in Bash:
 
 ```bash
 git clone https://github.com/Yichen-ZJU/claude-for-research.git
@@ -76,22 +136,24 @@ cd claude-for-research
 ./install.sh
 ```
 
-安装器会备份同名技能、代理与 CLAUDE.md 到 `~/.claude/backups/`。 / Existing matching skills, agents and CLAUDE.md are backed up before installation.
-
-全文调研还需 ArXiv MCP： / For full-text research, install ArXiv MCP:
+安装器会备份同名技能、代理与 CLAUDE.md。全文检索需另行配置 ArXiv MCP： / Existing matching skills, agents, and CLAUDE.md are backed up. Configure ArXiv MCP for full-text retrieval:
 
 ```bash
 uv tool install arxiv-mcp-server
 claude mcp add --scope user arxiv -- "$HOME/.local/bin/arxiv-mcp-server"
 ```
 
-安装后开启新会话，用一个明确的问题开始，例如： / Start a new session with a concrete research question:
+开启新会话，给出问题、项目路径和预算： / Start a new session with the question, project path, and budget:
 
-> 用 research-orchestrator 研究怎样改善手写数字分类器，以及改进为何有效。先调研与构思，选择合适的基线和实验路线：已有代码可直接运行 autoresearch，需要自驱任务包时再用 experiment-forge。结合结果改进方法、检验解释，最后整理代码、图表、研究发现和论文草稿。
+> 用 research-orchestrator 开始研究：问题是……，已有代码与数据在……，可用算力与时间预算是……。请选择合适路线，准备就绪后启动最小真实实验，根据结果改进方法、检验解释，并持续保存研究状态。形成完整贡献后，用共享 Paper Narrative 组织摘要、Introduction、图表与结尾。
 
-> Use research-orchestrator to improve a handwritten-digit classifier and investigate why the changes work. Research the literature, develop ideas, and choose a baseline and experiment route: run autoresearch directly on existing code, or use experiment-forge when a task package is needed. Iterate methods, test explanations, and assemble code, figures, findings, and a paper draft.
+> Use research-orchestrator to study … . My code and data are in … ; my compute and time budget are … . Choose a route, launch the smallest real experiment when ready, revise the method and test explanations from the results, and preserve research state. When the contribution is ready, use a shared Paper Narrative to connect the abstract, introduction, figures, and conclusion.
 
-[在主页观看内外双循环动画 / Watch the nested-loop workflow →](https://yichen-zju.github.io/lemvo/#walkthrough)
+### 持续推进 / Keep the project moving
+
+Claude Code 通过原生 Agent 协作与**会话内心跳**推进长任务。会话结束后，开启新会话并指向原项目，Orchestrator 先读取落盘状态与 findings，再继续研究。心跳的运行方式见[持久运行规范](skills/research-orchestrator/SKILL.md#持久运行)。
+
+Claude Code uses native agents and **in-session heartbeats** for longer work. After a session ends, open a new one on the same project: Orchestrator reads the saved state and findings before continuing. See the [persistent-execution conventions](skills/research-orchestrator/SKILL.md#持久运行).
 
 <sub>感谢开源仓库 / Thanks to [autoresearch](https://github.com/karpathy/autoresearch), [Feynman](https://github.com/Companion-Inc/feynman), and [AI Research Skills](https://github.com/Orchestra-Research/AI-Research-SKILLs). 各组件许可见原始文件与仓库 / Component licenses remain in their source files and repositories.</sub>
 
