@@ -56,3 +56,7 @@ codex 0.160.0 字段报告驱动：experiment-forge 补 description（0.160.0 �
 ## 2026-10-09 路由执行链接线（六项）
 
 autoresearch 最小就地契约与 Forge 解耦；公开菜单可用性过滤（目录存在性先于偏好）；codex-pro AutoScientists 交接规格（TASK.md 四字段+LAUNCH.md 底稿+launcher 路径）；research-state.yaml 累计预算总账与 backend_ledger；KEEP 口径拆分为 eval_baseline/best_value 两字段（主控+契约+模板三处统一）；文献路由改 ArXiv MCP 全文链。arbor 文档示例改绝对解释器（140.16 glibc 墙）并实测调用链。
+
+## 2026-10-09 准备循环失控修复
+
+真续接（codex exec resume + 项目级持久化会话 id，禁 --last，冷启动发状态摘要不发裸 continue）；准备预算跨重启累计（prep 六字段入 state 模板）；READY_TO_PROBE 就绪即启真实最小 probe；审查限界（门上限+新增门须论证、分级审查、审计不递归、可阻塞/不可阻塞清单）；修复重试政策（真实改动+新信息，替代一刀切）。GPT 事实裁定全部独立复核通过（账本 38.7408 GPU·h 复算一致）。活体战役脚本未动，参考外层脚本作 drop-in 交付。
