@@ -12,11 +12,16 @@
 #     unknown 不记 0；PREP_WALL_CAP_MIN 支持非负浮点。
 #  S6 节检测容忍行尾注释（prep: # ledger），不再重复建节。
 #  临时文件全部 mktemp 随机名（并发战役不互踩）。
+# v4.2（round-20）：双引擎适配——ENGINE=codex|claude（环境变量或项目内
+#  .lemvo-engine 文件，缺省 codex）。claude 分支：claude -p --resume headless
+#  调用，session id 从 --output-format json 的 session_id 字段提取。
 # v3/v4 行为保留：真续接、阻塞态闭环、调用者消息永不删除、YAML 权威、
 # 预算决策点四选项。
 # 红线：替换活体战役脚本前先备份；对在跑进程只观察不杀。
 set -uo pipefail
-HELPER_VERSION="4.1"
+HELPER_VERSION="4.2"
+ENGINE="${ENGINE:-$(cat .lemvo-engine 2>/dev/null || echo codex)}"
+CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 
 # ── --init 模式 ──
 if [ "${1:-}" = "--init" ]; then
@@ -90,10 +95,10 @@ python3 -c "import sys; v=float(sys.argv[1]); sys.exit(0 if v>=0 else 1)" "$PREP
 write_helper() {
   cat > "$HELPER" <<'PYEOF'
 #!/usr/bin/env python3
-"""autoloop v4.1 助手（HELPER_VERSION 4.1）。py3.6 兼容，标准库 only。"""
+"""autoloop v4.2 助手（HELPER_VERSION 4.2）。py3.6 兼容，标准库 only。"""
 import fnmatch, hashlib, json, os, re, sys
 
-HELPER_VERSION = "4.1"
+HELPER_VERSION = "4.2"
 STATE = "research-state.yaml"
 BLOCKING = {"HOLD", "STOPPED", "PAUSED", "EVIDENCE_HOLD", "STOPPED_INCONCLUSIVE",
             "BLOCKED", "BLOCKED_USER"}
@@ -499,19 +504,30 @@ MSG
   MSG_SOURCE="$OWN_SUMMARY"; MSG_OWNED=yes
 fi
 
-# ── 5) 真续接调用 ──
+# ── 5) 真续接调用（双引擎适配）──
 RUN_OUT=$(mktemp)
-if [ -s "$SID_FILE" ]; then
-  SID="$(cat "$SID_FILE")"
-  ARGS=(exec --skip-git-repo-check --json resume "$SID" "$(cat "$MSG_SOURCE")")
+if [ "$ENGINE" = "claude" ]; then
+  if [ -s "$SID_FILE" ]; then
+    SID="$(cat "$SID_FILE")"
+    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --resume "$SID" --output-format json --dangerously-skip-permissions > "$RUN_OUT" 2>&1
+  else
+    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --output-format json --dangerously-skip-permissions > "$RUN_OUT" 2>&1
+  fi
+  rc=$?
 else
-  ARGS=(exec --skip-git-repo-check --json "$(cat "$MSG_SOURCE")")
+  if [ -s "$SID_FILE" ]; then
+    SID="$(cat "$SID_FILE")"
+    ARGS=(exec --skip-git-repo-check --json resume "$SID" "$(cat "$MSG_SOURCE")")
+  else
+    ARGS=(exec --skip-git-repo-check --json "$(cat "$MSG_SOURCE")")
+  fi
+  codex "${ARGS[@]}" < /dev/null > "$RUN_OUT" 2>&1
+  rc=$?
 fi
-codex "${ARGS[@]}" < /dev/null > "$RUN_OUT" 2>&1
-rc=$?
 
-# ── 6) 会话 ID 提取 ──
-NEW_SID=$( grep -oE '"thread_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
+# ── 6) 会话 ID 提取（claude session_id | codex thread_id | 文本三拼写）──
+NEW_SID=$( grep -oE '"session_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
+        || grep -oE '"thread_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || grep -oiE 'session( id|_id)?: [a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || true )
 [ -n "$NEW_SID" ] && { [ "$NEW_SID" != "$(cat "$SID_FILE" 2>/dev/null || true)" ] && echo "$NEW_SID" > "$SID_FILE"; }

@@ -267,6 +267,27 @@ research-state.yaml 的 supported / refuted / inconclusive 字段承担全部
 - 跨会话：所有状态必须落盘（state/log/findings/experiments），新会话先读这四个再动手。
 - 实验比心跳间隔长：正常，下 tick 检查是否跑完，没跑完就等或做别的事（更新笔记、查文献）。
 
+## 运行模式与作业契约（lemvo-run 双模式，REQUIRED）
+
+推进的扳机由 `templates/lemvo-run.sh`（普通程序控制器，非模型）持有；
+本 skill 的职责是遵守以下契约（文件都在项目根）：
+
+- **`.lemvo-mode`**（guided | unattended）：只改变"下一阶段谁启动"——
+  guided = 每段有独立产物的工作结束，停在清晰交接点等人（`lemvo-run.sh
+  advance` 或交互推进）；unattended = 控制器自动推进。两种模式共用同一
+  campaign ID、research-state、累计预算；切换随时生效，在跑训练不中断。
+- **`.lemvo-steer.md`**：用户指导队列。每轮开始先读它并纳入本轮决策
+  （控制器在轮边界注入，成功后归档）；guidance 不需要先终止项目。
+- **`.lemvo-jobs.json`**：启动后台训练/评测作业时**必须**写（并移除已完成
+  项）：`[{"name","wait_file"|"pid","timeout_min"}]`。控制器只观察不重启；
+  续跑时按 run_id 去重——已在跑/已完成的作业不得重复提交。等待期间控制
+  器零模型调用；作业完成/超时后你被唤醒读结果、改方法、继续。
+- **收尾**：研究结束写 `CAMPAIGN-DONE`（内容=交付摘要）；紧急暂停写
+  `STOP`（人处理）。预算决策点由单轮脚本给出三选项——unattended 模式下
+  控制器停在决策点等人，不代人选。
+- 轮内自主权不变：autoresearch 批次、分析、方法修订在**一轮内**照常自主
+  完成；模式只管轮与轮之间。
+
 ## 进展报告
 
 有意义就产（外循环发现模式、轨迹明显上升、PIVOT、收尾前）：研究问题、关键结果+图、优化轨迹曲线、试了哪些（精选）、当前理解、下一步。用 `templates/progress-presentation.html` 起步，写到 `to_human/`。
