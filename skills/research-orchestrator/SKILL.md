@@ -279,11 +279,18 @@ research-state.yaml 的 supported / refuted / inconclusive 字段承担全部
 - **`.lemvo-steer.md`**：用户指导队列。每轮开始先读它并纳入本轮决策
   （控制器在轮边界注入，成功后归档）；guidance 不需要先终止项目。
 - **`.lemvo-jobs.json`**：启动后台训练/评测作业时**必须**写（并移除已完成
-  项）：`[{"name","done_file"(完成标志文件，优先)|"pid","timeout_min"}]`。
-  注意 **pid 结束 ≠ 成功**——有 pid 的作业须同时声明 done_file（结果/指标
-  文件）供控制器判定 succeeded；控制器只观察不重启；续跑时按 run_id 去重
-  ——已在跑/已完成的作业不得重复提交。作业完成/超时/失败会生成
-  `.lemvo-receipts/` 回执并在下一轮注入（读结果、改方法、勿重跑同 run_id）。
+  项）：`[{"name","run_id","done_file"(完成标志文件，优先)|"pid","timeout_min"}]`。
+  **run_id 提交前登记、重试沿用同 ID**（不换 ID 绕过去重）；已在跑/已完成的
+  作业不得重复提交。done_file 推荐写 JSON 结果：
+  `{"run_id","status":"succeeded|failed","exit_code","metrics":{...}}`——控制器
+  按 run_id/status/exit_code 判终态（非空非 JSON 哨兵仅向后兼容视为完成，
+  **pid 结束 ≠ 成功**，status 缺失 ≠ 成功）。作业完成/超时/失败/损坏会生成
+  `.lemvo-receipts/` 回执（schema `lemvo-job-receipt`，含 run_id/exit_code/
+  host/metrics）并在下一轮注入（读结果、改方法、勿重跑同 run_id）。
+- **每轮闭环凭据**：控制器为每轮写 `turns/<turn_id>/manifest.json` 与
+  `result.json`（status/next_action/scientific_verdict 沿用 research-state
+  现有标签，不造新评分）；引擎结构化报错（claude `result.is_error` /
+  codex `turn.failed`）按失败记账，不因进程 rc=0 记成功。
 - **收尾**：研究结束写 `CAMPAIGN-DONE`（内容=交付摘要）；紧急暂停写
   `STOP`（人处理）。预算决策点由单轮脚本给出三选项——unattended 模式下
   控制器停在决策点等人，不代人选。
