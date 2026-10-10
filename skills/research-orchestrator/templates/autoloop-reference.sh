@@ -845,7 +845,7 @@ CUR_SID="$(cat "$SID_FILE" 2>/dev/null || true)"
 
 # ── 7) 失败分类（A1 收口：服务/账号错误 ≠ 会话死亡 ≠ 研究停滞）──
 if [ "$rc" -ne 0 ]; then
-  if grep -qiE 'rate.?limit|quota|billing|payment|429|500|502|503|504|401|403|unauthorized|forbidden|internal server error|overloaded|service unavailable|temporarily|timeout|ECONNRESET|network' "$TD/engine-stdout.jsonl" "$TD/engine-stderr.log" 2>/dev/null; then
+  if grep -qiE 'rate.?limit|quota|billing|payment|429|500|502|503|504|401|403|unauthorized|forbidden|internal server error|overloaded|service unavailable|temporarily|timed.?out|timeout|ECONNRESET|network' "$TD/engine-stdout.jsonl" "$TD/engine-stderr.log" 2>/dev/null; then
     say "服务/账号类错误（限流/认证/基础设施）——保留 SID，不计 resume-fail；计量尽力而为"
     parse_usage "$TD/engine-stdout.jsonl"
     python3 "$HELPER" account "$(( $(date +%s) - TURN_START ))" "$U_IN" "$U_OUT" >/dev/null 2>&1 || true
