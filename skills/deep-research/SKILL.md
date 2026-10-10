@@ -30,6 +30,25 @@ This is an execution request, not a request to explain or implement the workflow
 - **verifier → reviewer 串行**：研究员参与后 verifier 强制；reviewer 的 FATAL 必须修复并磁盘复核后才可交付；修复 >3 处时重写整文件为 `-revised.md`。
 - **工具调用统计入 provenance**：Skill/arxiv MCP/alphaxiv/Web/Agent 各类调用次数写入 `<slug>.provenance.md`（管线路径的审计证据）。
 
+## 可复用资产输出契约（方向扫描/选题调研类必执行）
+
+文献的用途是**建设材料，不是禁区**。方向扫描/选题调研的最终产物必须包含
+"可复用资产"（Reusable Assets）一节，与"占位/空白地图"并列且**先于**它：
+
+1. **可直接采用的基线**：每条含官方代码链接、已报告指标、复现要点
+   （环境/数据/算力）；无代码的注明。
+2. **可迁移配方**：论文里可直接搬到本任务的技术组件（损失/采样/调度/
+   训练目标），写明"搬什么、改哪里、预期作用机制"——读到配方只登记
+   blocker 不提取做法是违规。
+3. **可用资产**：数据集、评测协议、checkpoint、工具库及其获取方式。
+4. **组合候选**：A+B 组合建议，每条附互补理由（为何预期互补而非冗余）
+   与 A/B/A+B 对照设计草案。
+
+**审计接口（verifier 阶段执行）**：对照 orchestrator 的"近邻不否决"与
+"探索许可"规则检查调研产出的结论表——任何因"已有人做过/仅是重组"而
+不晋级的候选，必须是违反了 delta 四要件（写不出增量），而不是违反了
+"无人做过"这类不存在的要求。发现此类误杀要在 verifier 报告中点名。
+
 ## Required Artifacts
 
 Derive a short slug from the topic: lowercase, hyphenated, no filler words, at most 5 words.

@@ -24,16 +24,23 @@ hypotheses:
   # - id: H1
   #   statement: "Testable claim with clear prediction"
   #   status: pending             # pending | active | supported | refuted | inconclusive
+  #   verdict: ""                 # 阴性/排除记录必填标签：IMPLEMENTATION_INVALID |
+  #                               # MEASUREMENT_INCONCLUSIVE | EXPLORATORY_POSITIVE |
+  #                               # EXPLORATORY_NEGATIVE | CONFIRMATION_NOT_ESTABLISHED |
+  #                               # NOVELTY_OVERLAP | UNTESTED（语义见 orchestrator 裁决语义分层）
+  #   scope: ""                   # 该结论限定的对象：配方/预算/指标/条件（整族禁令禁止）
   #   motivation: "Why this is worth testing"
   #   parent: null                # null for root, parent ID (e.g., H1) for sub-hypotheses
   #   priority: medium            # high | medium | low
 
 # 准备循环总账（跨会话/重启/后端累计；重命名 phase/slug 不清零）
 prep:
-  prep_turns: 0                  # 距上次有信息量观测的准备轮数
-  prep_wall_time_min: 0.0        # 累计准备墙钟（分钟）
+  prep_turns: 0                  # 距上次【有信息量观测】的准备轮数——重置须有 artifact 背书（见 last_informative_artifact），纯文字变化不重置
+  prep_wall_time_min: 0.0        # 累计准备墙钟（分钟）——由外层脚本实测累计，不可文字清零
   prep_cost: null                # 可取得的 token/费用估计
-  last_informative_observation: ""  # 上次有效进展是什么（何时）
+  last_informative_observation: ""  # 上次有效进展是什么（何时）——描述性文字
+  last_informative_artifact: none  # 进展凭据文件路径（eval json/带数字的笔记）；settle 用其内容哈希判定真进展
+  last_artifact_sha: none        # 上次结算时凭据文件的 sha256（防 touch/重写无内容变化的伪进展）
   ready_blocker: ""              # 未就绪的具体阻塞 + 解除条件
   next_min_probe: ""             # 就绪后的最小真实 probe 描述
   session_id: null               # 外层循环续接会话 id（按项目持久化）
@@ -44,6 +51,9 @@ budget:
   total_cap: null                 # 本研究目标的累计上限
   used: 0.0                       # 已消耗（跨后端合计）
   remaining: null                 # = total_cap - used；null 表示未设上限
+  total_wall_time_min: 0.0        # 外层循环实测累计墙钟（分钟，只增不清零）
+  total_tokens_in: 0              # 引擎输入 token 累计（--json usage 事件解析）
+  total_tokens_out: 0             # 引擎输出 token 累计
 
 # 后端交接日志（每次切换/启动引擎追加一行，不覆盖）
 backend_ledger: []

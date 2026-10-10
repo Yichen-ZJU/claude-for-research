@@ -21,11 +21,19 @@ description (not only discovered during experiments); it cannot be
 fixed by stronger baselines or better writing alone; and reviewers
 will flag it in the first review round.
 
-The canonical count is at most two fatal flaws per idea. If the list
-exceeds two, the idea's direction itself is wrong and a pivot is
-required.
+Flaw count is diagnostic verbosity, not a verdict input: severity is a
+property of each flaw itself (see the severity rules in section 5). Any
+number of fixable (MAJOR) flaws routes to Accept with Revisions; only a
+genuinely unsolvable CRITICAL flaw rejects the affected claim.
 
 ## 2. Ten canonical fatal flaws
+
+Stage note: F1/F2/F6/F7 are evaluation-stage (apply whenever the idea is
+assessed). F3/F4/F8/F10 are **paper-maturity heuristics** — they inform
+the eventual paper plan and must NOT veto exploration-stage candidates;
+an exploratory candidate with a weak baseline plan or thin motivation is
+revised, not rejected. F5 (capability mismatch) rejects only when the
+mismatch is unsolvable within budget.
 
 ### F1: No clear increment over the nearest prior work
 

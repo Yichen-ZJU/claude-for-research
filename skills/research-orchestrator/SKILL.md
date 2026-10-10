@@ -32,8 +32,21 @@ argument-hint: <research-question-or-project-dir>
 **可用性过滤（先于偏好选择）**：选择路线前先检测该后端在本环境
 是否真实存在——`skills/arbor-research-agent/`、`skills/autoscientist/`
 （或已配置的 launcher 路径）目录存在性检查。不可用后端**跳过并在
-research-state.yaml 注明"该后端在本环境不可用"**；这不是科研否决门，只影响
+research-state.yaml 注明"需要 Pro 部署"**；这不是科研否决门，只影响
 本环境可选菜单。
+
+
+**AutoScientists 交接规格（codex-pro 无内置 launcher，REQUIRED）**：
+本仓不含 `autoscientist/` 目录；launcher 位于 claude-for-research-pro  checkout
+的 `autoscientist/launch.py`（以本机实际 checkout 绝对路径为准，可用
+`AUTOSCIENTIST_LAUNCHER` 环境变量覆盖）。orchestrator 决定走团队路线后：
+1. 生成 `TASK.md`——frontmatter 四字段必填：`name` / `task_type`
+   （optimization|exploration）/ `metric` / `direction`（higher|lower），
+   正文写目标与停滞退出条件（如"连续 10 次无 KEEP 即停"）；
+2. 生成 `LAUNCH.md`——以 `autoscientist/task-autoresearch/LAUNCH.md` 为
+   底稿（claude-pro checkout 内），替换任务字段；
+3. 运行 `$AUTOSCIENTIST_LAUNCHER --task <dir> --output-dir <runs/>`；
+4. 交接行写入 backend_ledger：backend=autoscientists、local_cap、停止标准。
 
 **通用交接规则（任一路线命中后 REQUIRED）**：引擎身份、局部预算与停止
 标准（autoresearch maxIterations/timeout；Arbor cycle cap/收益递减；
@@ -48,7 +61,7 @@ research-state.yaml；换引擎 = 新交接行，累计账不清零。
 | 任务包锻造（锁定评估+开放文件） | `experiment-forge` |
 | 内循环实验（改→测→留/滚） | 小调整/快速迭代 → `autoresearch` skill 或直接按 program.md；无人值守批量 → `experiment-forge` 造包 + autoresearch 执行。深度攻坚/广度撒网引擎（Arbor/AutoScientists）属 Pro 部署；公开版用 forge 造包 + 无人值守接力覆盖 |
 | 授权下传（调用任何子技能时 REQUIRED） | orchestrator 已批准的 scope、预算、环境、恢复意图视为已授权并显式传给子技能；子技能在授权下只对新增实质性选择提问，不重复确认（autoresearch Step 1-3、forge 逐项确认在授权下跳过） |
-| 后端交接（调用实验引擎时 REQUIRED） | 在 research-state.yaml 显式记录：引擎身份、局部预算与停止标准（autoresearch maxIterations/timeout）、已消耗资源；PIVOT/续跑不重置累计账 |
+| 后端交接（调用任一实验引擎时 REQUIRED） | 在 research-state.yaml 显式记录：后端身份、后端局部预算与停止标准（autoresearch maxIterations/timeout；Arbor cycle cap/收益递减；AutoScientists profile 截止/KEEP streak）、已消耗资源；切换后端时累计预算连续计入同一研究目标 |
 | 微调执行 | `peft`、`unsloth`、`llama-factory` |
 | 分布式训练 | `pytorch-fsdp2`、`deepspeed`、`megatron-core`、`accelerate` |
 | 蒸馏/压缩/长上下文 | `knowledge-distillation`、`model-pruning`、`long-context` |
@@ -86,7 +99,7 @@ research-state.yaml；换引擎 = 新交接行，累计账不清零。
 ```
 BOOTSTRAP（一次，轻量）
   明确问题 → literature-review 摸底 → 形成初始假设 → 锁定评估标准
-  双闸门（REQUIRED，纪律内联于此）：
+  双闸门（REQUIRED，纪律内联于此；Pro 版有显式 rq-gates 协议文件）：
   Gate 0（输入模糊才触发，带证据引导的方向选择）；Gate 1（必过：FINER
   五维 + scope 边界 + 方法论蓝图 + 魔鬼代言人 checkpoint），PASS 前不
   进内循环。已有明确输入/已有结果时 Gate 0 不触发，写作任务不重新否决
@@ -113,7 +126,6 @@ FINALIZE
 ```
 
 内外循环没有刚性边界 —— 节奏由你判断。研究是非线性的：结果意外就回文献（存 `literature/`），卡死就头脑风暴，问题本身错了就 PIVOT。
-
 
 ## 准备循环纪律（防元工作膨胀，REQUIRED）
 
@@ -193,6 +205,50 @@ research-state.yaml 的 supported / refuted / inconclusive 字段承担全部
 状态语义：refuted 只写给具体子假设或候选，根假设只有在其核心可检验
 主张全部被有效证据反驳时才 refuted。测量失败一律记 inconclusive
 （测量对象），不记 refuted（假设对象）。
+
+## 裁决语义分层（每条阴性/排除记录必须带标签，REQUIRED）
+
+"证据不足以写论文"不等于"方法不值得建设"。任何阴性、排除、关闭记录
+必须落到以下标签之一，且**只影响标签声明的对象**：
+
+| 标签 | 含义 | 允许的影响 |
+|---|---|---|
+| IMPLEMENTATION_INVALID | 实现有错/方法未真正启用 | 只否当前实现；修复后重评 |
+| MEASUREMENT_INCONCLUSIVE | 测量在该条件下不可识别信号（样本量、前缀掩盖、灵敏度） | 只否该测量条件；假设保持未决 |
+| EXPLORATORY_POSITIVE / EXPLORATORY_NEGATIVE | dev/探索集上的方向性信号（含 CI） | 影响优先级，不构成确认或否证 |
+| CONFIRMATION_NOT_ESTABLISHED | 确认集/新种子未复现 | 只否"已确认"主张，不否探索信号本身 |
+| NOVELTY_OVERLAP | 近邻存在 | 触发 delta 声明（见近邻节），禁止直接关闭 |
+| UNTESTED | 从未运行（被文献门/条件挡住） | **禁止写成阴性**；进待办或明确放弃理由 |
+
+配套规则：
+- **整族禁令禁止**：历史"dead/excluded"清单必须缩限到具体配方/预算/指标/
+  条件；对未测成员只能标 UNTESTED。
+- **有限样本诊断不关方向**：n≤10 的诊断或已知不可识别条件（如前缀掩盖），
+  结论上限是 MEASUREMENT_INCONCLUSIVE；扩样或换条件后才允许更强标签。
+- **配对/池化口径**：同数据两种聚合方向相反时（如每轨迹等权 +3.97 vs
+  步池化 −1.28），两个数字都必须记录，结论只能写"未晋级的不确定信号"，
+  禁止挑一边写成"证明了负信号"。
+
+## 探索许可与论文许可分离（双门制）
+
+- **探索门（要不要做）**：delta 声明四要件（近邻节）+ 互补理由（组合
+  A+B 时说明为什么预期互补而非冗余）+ A/B/A+B 直接对照设计。不要求
+  "无人做过该家族"——组合、迁移、补对照都是合法增量。
+- **论文门（能不能写）**：确认集 PASS、稳定性复核、estimand 冻结——
+  这些标准**永不倒灌为探索门**。"没有 fresh confirmation cohort"不是
+  停止 dev 集探索的理由，只是不能宣布确认。
+- **诊断建设出口（REQUIRED）**：任何继续消耗预算的诊断必须写明"它会
+  改变哪个方法决策"；可修复问题优先落实一次代码改动 + 直接对照，而不是
+  叠加新诊断。换向前必须比较"继续建设当前线 vs 新开线"的残值。
+
+## 计量公平纪律（详见 references/measurement-fairness.md，REQUIRED）
+
+- estimand 锁定：点估计与 CI 必须同权重口径（每轨迹等权 vs 全步池化
+  是两个不同的量）；配对主张只能用于真配对设计。
+- 预算匹配要兑现："同预算对照"必须核对 updates/样本数/调度长度实际
+  相等，不等则披露差异并把结论限定为"该配方条件下"。
+- 每个候选方法有有限开发调优权：借用他臂的 LR/epoch 不构成对该方法
+  家族的终局判决（详见 measurement-fairness.md）。
 
 ## findings.md 是项目记忆
 

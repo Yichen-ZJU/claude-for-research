@@ -181,8 +181,9 @@ Issue one of three verdicts:
   before starting. Some dimensions weak, fixable flaws, or lifecycle
   mismatch that can be shortened.
 - **Reject and Pivot**: do not pursue this version. Dominated by a
-  prior benchmark or method, unfixable capability mismatch, or more
-  than one fatal flaw.
+  prior benchmark or method, or unfixable capability mismatch. Severity
+  is a property of each flaw itself, never a count of flaws — multiple
+  fixable (MAJOR) flaws route to Accept with Revisions, not Reject.
 
 Emit the evaluation in the Output format below.
 
