@@ -118,7 +118,7 @@ engine_now() { cat "$ENGINE_F" 2>/dev/null || echo codex; }
 # ── 引擎/轮在途身份（round-23：PID+starttime 双核验，无身份不作为凭据）──
 engine_pid_alive() {
   local f=.autoloop-engine.pid pid st
-  read -r pid st < "$f" 2>/dev/null || return 1
+  read -r pid st 2>/dev/null < "$f" || return 1
   case "$pid" in ''|*[!0-9]*) return 1;; esac
   [ -n "$st" ] || return 1   # 旧格式（裸 PID）无身份——不认，防误伤他项目进程
   kill -0 "$pid" 2>/dev/null || return 1
@@ -642,7 +642,11 @@ while :; do
        [ "$FAILS" -ge "$ENGINE_FAIL_MAX" ] && { set_status "BLOCKED|protocol-errors"; log "协议/结构化错误连续 $FAILS——退出待人"; exit $rc; }
        log "协议/结构化错误（rc=9）——退避重试"; sleep 60; TURN=$((TURN - 1)); continue;;
     3|4|5) set_status "BLOCKED|rc$rc"; log "单轮失败 rc=$rc——退出待查"; exit $rc;;
-    *) FAILS=$((FAILS + 1))
+    *) if [ "$REASON" = "RESUME_RECOVERED" ]; then
+         log "冷启动恢复完成（会话不存在，SID 已清）——下一轮冷启动重试，不计连续失败"
+         TURN=$((TURN - 1)); continue
+       fi
+       FAILS=$((FAILS + 1))
        [ "$FAILS" -ge "$ENGINE_FAIL_MAX" ] && { set_status "BLOCKED|engine-fails"; log "引擎连续失败 $FAILS——退出"; exit $rc; }
        log "引擎轮失败 rc=$rc（$FAILS/$ENGINE_FAIL_MAX）——退避重试"; sleep 60; TURN=$((TURN - 1)); continue;;
   esac

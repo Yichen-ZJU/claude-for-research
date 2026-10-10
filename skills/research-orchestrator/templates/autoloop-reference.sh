@@ -831,7 +831,7 @@ PYEP
   wait $engpid; rc=$?
   rm -f .autoloop-engine.pid
 }
-CLAUDE_PERMS=""
+CLAUDE_PERMS="${CLAUDE_PERMS_EXTRA:-}"   # 窄白名单入口（如 --allowedTools ...）；不受信任目录下项目 settings 会被忽略，CLI 级白名单不受影响
 [ "${CLAUDE_SKIP_PERMS:-0}" = "1" ] && CLAUDE_PERMS="--dangerously-skip-permissions"
 run_engine
 
@@ -872,6 +872,7 @@ if [ "$rc" -ne 0 ]; then
   if [ -n "${SID:-}" ] && [ "$FAILS" -ge "$RESUME_FAIL_THRESHOLD" ]; then
     if grep -qiE 'session.*not.*(found|exist)|unknown conversation|no conversation|expired' "$TD/engine-stdout.jsonl" "$TD/engine-stderr.log" 2>/dev/null; then
       say "会话确认不存在——冷启动恢复（清 SID，保留消息源）"
+      emit_reason "RESUME_RECOVERED"   # 控制器据此不计连续失败，下一轮冷启动
       rm -f "$SID_FILE"
       RF=$(mktemp); printf '{"type":"resume-recovery","turn_id":"%s","reason":"session-not-found","sid":"%s","ts":"%s"}\n' "$TURN_ID" "$SID" "$(date -u +%FT%TZ)" > "$RF"
       helper ledger-append < "$RF" || true; rm -f "$RF"
