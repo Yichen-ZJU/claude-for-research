@@ -68,3 +68,8 @@ autoresearch 最小就地契约与 Forge 解耦；公开菜单可用性过滤（
 - intro-drafter/SKILL.md Step 0：主线对接保留，新增骨架选择（默认六段 flowchart，叙事计划可指定其他骨架；integrity gate 仍 function-based，段落数永不是发现）。
 - 行为验收（独立代理，5/5 PASS，行级证据）：技术论文任务→计划同时给立场+六段骨架；benchmark 任务→骨架 2 优先不误入范式选择；根因手术刀×六段组合不冲突；round-12 A/B/C 实验路由回归不破；审查纪律回归（骨架非硬门槛、pre-submission-reviewer 零触碰）。fm_lint 四仓 115/115/178/181 全 0 缺陷。记录：/home/yyc/outputs/lemvo-narrv2-20261009/。
 
+
+## 2026-10-10 运行时 v2（round-23：占用窗口/原子锁/结果闭环）
+
+lemvo-run v3：owner 原子锁（tmp 填充后 mv -T 发布，pid+starttime 双写身份，owner_alive 三态、宽限 60s 不抢锁）；C5 启动对账（turns/*+engine.json 判活、孤儿引擎等待+--recover 打捞、manifest settled 标记）；C6 结构化原因（HOLD→WAITING_USER、BLOCKED-USER→BLOCKED rc9、STOP→rc6）；引导常驻+双向切换（REQ_ADV 触摸、无 owner advance 共享步进）；作业六终态+回执 v2（run_id 预注册、JSON done_file、stale/corrupt 判定）。autoloop v4.5：整轮占用（.autoloop-turn-active=turn_id|pid|start，模型结束≠轮结束）；JSON-only 计量（cache_read/cache_creation 缺失=unknown 不凑 0、total_cost_usd 保真 1e-05、claude 累计成本按 SID 取差值、codex 单次计）；服务/引擎错误分类（429/401/5xx→rc8 保 SID，引擎结构化失败 rc0 也判 rc9）；--recover 孤儿打捞。SKILL.md：作业契约更新。回归（isolated stub，如实计数）：probe-v9 26/26、events 15/15、recovery 5 场景全过、adapter 双 CLI 夹具全过——口径=源码通过，非安装通过、非真实能力通过。活体战役（138.6/195）未触碰。下一步：小预算真实双 CLI 试点 + 交付 outputs/lemvo-runtime-v2-20261010/。
+
