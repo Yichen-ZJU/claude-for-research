@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
-# 参考外层循环脚本 v4（round-18：三天实操审计修复）
-# v4 变更（对 v3 的修正，GPT lemvo-three-day-audit-2026-10-10）：
-#  1) 进展凭据锚定：last_informative_observation 纯文字变化不再重置准备
-#     停滞计数——重置须有 artifact 背书（prep.last_informative_artifact 指向
-#     真实文件且内容 sha256 变化）。防"每轮换个说法归零"的文字刷进度。
-#  2) 累计真账：total_wall_time_min 由脚本每轮实测累计（只增不清零）；
-#     total_tokens_in/out 从 codex --json usage 事件解析累计。
-#  3) --init 模式：交互式战役用 `autoloop-reference.sh --init <项目目录>`
-#     一条命令接入准备/预算账本字段（不动其他状态）。
-# v3 的全部行为保留：真续接（thread_id 优先+三拼写降级）、阻塞态闭环
-# （引号/注释安全）、调用者消息永不删除、授权扩额 JSON 账本、YAML 权威。
-# 红线：替换活体战役脚本前先备份原脚本与全部状态文件；对在跑进程只观察不杀。
+# 参考外层循环脚本 v4.1（round-19：GPT round-18 复核收尾）
+# v4.1 变更（对 v4 的修正）：
+#  S1 进展凭据类型化：artifact 须匹配建设类路径白名单（runs/ experiments/
+#     results/ *metrics*.json eval*.json *-preds.jsonl；ARTIFACT_GLOBS 可覆写）
+#     且 sha 变化。准备说明/笔记类文件永不计进展。
+#  S2 助手版本迁移：HELPER_VERSION 标记；旧/无版本助手先备份(.legacy-*)再
+#     升级；init/settle/account 失败显式报错并记 accounting-error，不假报成功。
+#  S3 授权 JSON 用 python 真序列化（引号理由合法）；记账失败退出 5 不调引擎。
+#  S4 模板 total 节与助手读写对齐；--init 打印诚实边界（初始化≠持续记账）。
+#  S5 usage 只从 JSON 事件的 usage 字段解析（噪声文本同名键不算）；缺失记
+#     unknown 不记 0；PREP_WALL_CAP_MIN 支持非负浮点。
+#  S6 节检测容忍行尾注释（prep: # ledger），不再重复建节。
+#  临时文件全部 mktemp 随机名（并发战役不互踩）。
+# v3/v4 行为保留：真续接、阻塞态闭环、调用者消息永不删除、YAML 权威、
+# 预算决策点四选项。
+# 红线：替换活体战役脚本前先备份；对在跑进程只观察不杀。
 set -uo pipefail
+HELPER_VERSION="4.1"
 
-# ── --init 模式：只初始化账本字段后退出（交互式战役采用用）──
+# ── --init 模式 ──
 if [ "${1:-}" = "--init" ]; then
   PROJ_DIR="${2:?用法: autoloop-reference.sh --init <项目目录>}"
   cd "$PROJ_DIR" || exit 64
@@ -23,7 +28,9 @@ if [ "${1:-}" = "--init" ]; then
 import re
 p = "research-state.yaml"
 lines = open(p, encoding="utf-8").read().splitlines()
-def has(name): return any(l.rstrip() == name + ":" for l in lines)
+def section_idx(name):
+    idxs = [i for i, l in enumerate(lines) if re.match(r"^" + name + r"\s*:", l)]
+    return idxs
 changed = False
 prep_fields = ["  prep_turns: 0", "  prep_wall_time_min: 0.0", "  prep_cost: null",
                "  last_informative_observation: \"\"", "  last_informative_artifact: none",
@@ -32,29 +39,32 @@ prep_fields = ["  prep_turns: 0", "  prep_wall_time_min: 0.0", "  prep_cost: nul
 total_fields = ["  total_turns: 0", "  total_wall_time_min: 0.0", "  total_cost: null",
                 "  total_tokens_in: 0", "  total_tokens_out: 0"]
 for name, fields in (("prep", prep_fields), ("total", total_fields)):
-    if not has(name):
-        lines.append(name + ":")
-        lines.extend(fields)
+    idxs = section_idx(name)
+    if not idxs:
+        lines.extend([name + ":"] + fields)
         changed = True
     else:
-        idx = max(i for i, l in enumerate(lines) if l.rstrip() == name + ":")
-        # 找该节末尾（下一个非缩进行）
+        idx = idxs[-1]
         end = idx + 1
-        while end < len(lines) and (not lines[end].strip() or lines[end][0] == ' ' or lines[end][0] == '#'):
+        while end < len(lines) and (not lines[end].strip() or lines[end][0] in " #"):
             end += 1
-        present = {re.match(r"\s*([\w-]+)\s*:", l).group(1) for l in lines[idx+1:end] if re.match(r"\s*[\w-]+\s*:", l)}
+        present = {m.group(1) for l in lines[idx+1:end] for m in [re.match(r"\s*([\w-]+)\s*:", l)] if m}
         for f in fields:
             key = re.match(r"\s*([\w-]+)\s*:", f).group(1)
             if key not in present:
-                lines.insert(end, f)
-                end += 1
-                changed = True
+                lines.insert(end, f); end += 1; changed = True
 if changed:
     open(p, "w", encoding="utf-8").write("\n".join(lines) + "\n")
     print("accounting-initialized")
 else:
     print("accounting-already-present")
 PYINIT
+  cat <<'WARN'
+诚实边界：--init 只初始化字段，不建立持续采集。持续记账需要（a）以本脚本
+作为外层循环逐轮运行（每轮自动结算墙钟/token/进展），或（b）交互式会话
+每轮手动调用本脚本一次（它结算当轮后退出）。只跑 --init 不跑循环 =
+字段存在但永远是 0。
+WARN
   exit $?
 fi
 
@@ -73,14 +83,17 @@ RESUME_FAIL_THRESHOLD="${RESUME_FAIL_THRESHOLD:-2}"
 
 say() { echo "[$(date +%H:%M:%S)] $*"; }
 [ "$PREP_CAP" -ge 0 ] 2>/dev/null || { say "PREP_CAP_TURNS 非法: $PREP_CAP"; exit 64; }
+python3 -c "import sys; v=float(sys.argv[1]); sys.exit(0 if v>=0 else 1)" "$PREP_WALL_CAP" 2>/dev/null \
+  || { say "PREP_WALL_CAP_MIN 非法（须非负数）: $PREP_WALL_CAP"; exit 64; }
 
-# ── python 助手（3.6 兼容；自愈写入）──
-if [ ! -f "$HELPER" ]; then
+# ── 助手版本管理（S2）──
+write_helper() {
   cat > "$HELPER" <<'PYEOF'
 #!/usr/bin/env python3
-"""autoloop v4 助手：YAML 读写/决策/账本（py3.6 兼容，标准库 only）。"""
-import hashlib, json, re, sys
+"""autoloop v4.1 助手（HELPER_VERSION 4.1）。py3.6 兼容，标准库 only。"""
+import fnmatch, hashlib, json, os, re, sys
 
+HELPER_VERSION = "4.1"
 STATE = "research-state.yaml"
 BLOCKING = {"HOLD", "STOPPED", "PAUSED", "EVIDENCE_HOLD", "STOPPED_INCONCLUSIVE",
             "BLOCKED", "BLOCKED_USER"}
@@ -90,6 +103,7 @@ PREP_DEFAULTS = [("prep_turns", "0"), ("prep_wall_time_min", "0.0"), ("prep_cost
                  ("ready_blocker", "none"), ("next_min_probe", "none"), ("session_id", "null")]
 TOTAL_DEFAULTS = [("total_turns", "0"), ("total_wall_time_min", "0.0"), ("total_cost", "null"),
                   ("total_tokens_in", "0"), ("total_tokens_out", "0")]
+DEFAULT_ARTIFACT_GLOBS = "runs/*:experiments/*:results/*:*metrics*.json:eval*.json:*-preds.jsonl"
 
 def strip_inline_comment(line):
     out, quote = [], None
@@ -100,8 +114,7 @@ def strip_inline_comment(line):
                 quote = None
         else:
             if ch in ("'", '"'):
-                quote = ch
-                out.append(ch)
+                quote = ch; out.append(ch)
             elif ch == "#":
                 break
             else:
@@ -113,6 +126,9 @@ def unquote(val):
     if len(val) >= 2 and val[0] == val[-1] and val[0] in ("'", '"'):
         return val[1:-1]
     return val
+
+def section_header(name):
+    return re.compile(r"^" + name + r"\s*:")
 
 def read_fields():
     f = {"campaign_status": "", "measurement_state": "", "root_status": "",
@@ -153,7 +169,7 @@ def init_sections(f, prep, total):
         return False
     changed = False
     for name, defaults in (("prep", PREP_DEFAULTS), ("total", TOTAL_DEFAULTS)):
-        idxs = [i for i, l in enumerate(lines) if l.rstrip() == name + ":"]
+        idxs = [i for i, l in enumerate(lines) if section_header(name).match(l)]
         if not idxs:
             lines.extend([name + ":"] + ["  " + k + ": " + v for k, v in defaults])
             changed = True
@@ -203,12 +219,19 @@ def sha256_file(path):
     except OSError:
         return None
 
+def artifact_is_construction(path):
+    globs = os.environ.get("ARTIFACT_GLOBS", DEFAULT_ARTIFACT_GLOBS).split(":")
+    base = os.path.basename(path)
+    full = path.lstrip("./")
+    return any(fnmatch.fnmatch(full, g) or fnmatch.fnmatch(base, g) for g in globs if g)
+
+LINES = []
 def set_in(section, key, val):
     global LINES
-    out, inside, done = [], False, False
+    out, inside, done, header_seen = [], False, False, False
     for ln in LINES:
-        if re.match(r"^" + section + r"\s*:\s*$", ln):
-            inside = True; out.append(ln); continue
+        if not header_seen and section_header(section).match(ln):
+            header_seen = True; inside = True; out.append(ln); continue
         if inside and not done:
             m = re.match(r"^(\s*)" + key + r"\s*:\s*", ln)
             if m:
@@ -248,13 +271,18 @@ def cmd_block_check():
     print("WAITING=" + ("yes" if any(s.upper() == "WAITING_RESOURCE" for s in states if s) else "no"))
 
 def cmd_settle():
-    """凭据锚定：进展 = artifact 存在且 sha 变化；纯文字变化不重置。"""
+    """S1 凭据类型化：进展 = artifact 匹配建设类白名单 且 sha 变化。"""
     global LINES
     f, prep, total = read_fields()
     init_sections(f, prep, total)
     artifact = prep.get("last_informative_artifact", "none")
     last_sha = prep.get("last_artifact_sha", "none")
-    new_sha = sha256_file(artifact) if artifact and artifact != "none" else None
+    new_sha = None
+    typed = False
+    if artifact and artifact != "none":
+        typed = artifact_is_construction(artifact)
+        if typed:
+            new_sha = sha256_file(artifact)
     new_progress = bool(new_sha) and new_sha != last_sha
     last_obs = prep.get("last_informative_observation", "none")
     last_seen = prep.get("last_seen_observation", "none")
@@ -266,10 +294,7 @@ def cmd_settle():
         total_turns = int(total.get("total_turns", "0"))
     except (TypeError, ValueError):
         total_turns = 0
-    if new_progress:
-        turns = 0
-    else:
-        turns += 1
+    turns = 0 if new_progress else turns + 1
     total_turns += 1
     LINES = open(STATE, encoding="utf-8").read().splitlines()
     set_in("prep", "prep_turns", turns)
@@ -279,13 +304,15 @@ def cmd_settle():
     set_in("total", "total_turns", total_turns)
     open(STATE, "w", encoding="utf-8").write("\n".join(LINES) + "\n")
     print("NEW_PROGRESS=" + ("yes" if new_progress else "no"))
+    print("ARTIFACT_TYPED=" + ("yes" if typed else "no"))
     print("PREP_TURNS_NOW=" + str(turns))
     print("TOTAL_TURNS_NOW=" + str(total_turns))
 
 def cmd_account():
-    """累计真账：墙钟秒数 + token。argv: account <elapsed_sec> <tokens_in> <tokens_out>"""
+    """S5：墙钟秒 + token（unknown 允许）。argv: account <elapsed_sec> <in|unknown> <out|unknown>"""
     global LINES
-    elapsed = float(sys.argv[2]); tin = int(sys.argv[3]); tout = int(sys.argv[4])
+    elapsed = float(sys.argv[2])
+    tin, tout = sys.argv[3], sys.argv[4]
     f, prep, total = read_fields()
     init_sections(f, prep, total)
     def num(v, d=0.0):
@@ -294,14 +321,48 @@ def cmd_account():
         except (TypeError, ValueError):
             return d
     wall = round(num(total.get("total_wall_time_min")) + elapsed / 60.0, 2)
-    tin_total = int(num(total.get("total_tokens_in"))) + tin
-    tout_total = int(num(total.get("total_tokens_out"))) + tout
     LINES = open(STATE, encoding="utf-8").read().splitlines()
     set_in("total", "total_wall_time_min", wall)
-    set_in("total", "total_tokens_in", tin_total)
-    set_in("total", "total_tokens_out", tout_total)
+    if tin != "unknown":
+        set_in("total", "total_tokens_in", int(num(total.get("total_tokens_in"))) + int(tin))
+    if tout != "unknown":
+        set_in("total", "total_tokens_out", int(num(total.get("total_tokens_out"))) + int(tout))
     open(STATE, "w", encoding="utf-8").write("\n".join(LINES) + "\n")
     print("WALL_NOW=" + str(wall))
+
+def cmd_usage_from():
+    """S5：从输出文件解析结构化 usage 事件。argv: usage-from <file>"""
+    tin = tout = 0
+    found = False
+    try:
+        for ln in open(sys.argv[2], encoding="utf-8", errors="replace"):
+            ln = ln.strip()
+            if not ln.startswith("{"):
+                continue
+            try:
+                ev = json.loads(ln)
+            except ValueError:
+                continue
+            u = ev.get("usage") if isinstance(ev, dict) else None
+            if isinstance(u, dict):
+                try:
+                    tin += int(u.get("input_tokens", 0)); tout += int(u.get("output_tokens", 0))
+                    found = True
+                except (TypeError, ValueError):
+                    pass
+    except OSError:
+        pass
+    if found:
+        print("TOKENS_IN=%d TOKENS_OUT=%d" % (tin, tout))
+    else:
+        print("TOKENS_IN=unknown TOKENS_OUT=unknown")
+
+def cmd_auth_json():
+    """S3：授权事件真序列化（justification 经环境变量传入）。"""
+    just = os.environ.get("AUTHORIZE_JUSTIFICATION", "")
+    obj = {"type": "authorize", "new_cap": int(sys.argv[2]),
+           "justification": just, "ts": sys.argv[3]}
+    print(json.dumps(obj, ensure_ascii=False))
 
 def cmd_ledger_append():
     obj = json.loads(sys.stdin.read())
@@ -332,13 +393,31 @@ if __name__ == "__main__":
     elif cmd == "settle": cmd_settle()
     elif cmd == "block-check": cmd_block_check()
     elif cmd == "account": cmd_account()
+    elif cmd == "usage-from": cmd_usage_from()
+    elif cmd == "auth-json": cmd_auth_json()
     elif cmd == "ledger-append": cmd_ledger_append()
     elif cmd == "resume-fails": cmd_resume_fails()
     elif cmd == "last-authorize-cap": cmd_last_authorize_cap()
     else: sys.exit(2)
 PYEOF
   chmod +x "$HELPER" 2>/dev/null || true
+}
+
+if [ ! -f "$HELPER" ]; then
+  write_helper
+elif ! grep -q "HELPER_VERSION = \"$HELPER_VERSION\"" "$HELPER" 2>/dev/null; then
+  TS=$(date +%Y%m%d-%H%M%S)
+  cp "$HELPER" "$HELPER.legacy-$TS"
+  write_helper
+  say "检测到旧版/无版本记账助手——已备份为 $HELPER.legacy-$TS 并升级到 v$HELPER_VERSION"
+  [ -f "$LEDGER" ] && printf 'accounting-helper-upgraded\tfrom=legacy-%s\tto=%s\tdt=%s\n' "$TS" "$HELPER_VERSION" "$(date -u +%FT%TZ)" >> "$LEDGER"
 fi
+
+# 助手调用包装（S2：失败显式）
+helper() {
+  python3 "$HELPER" "$@" || { say "记账助手失败（$*）——记 accounting-error，不假报成功";
+    printf 'accounting-error\tcmd=%s\tdt=%s\n' "$1" "$(date -u +%FT%TZ)" >> "$LEDGER"; return 1; }
+}
 
 # ── 0) 文件级阻塞标志 ──
 for f in STOP HOLD CAMPAIGN-DONE BLOCKED-USER; do
@@ -346,28 +425,21 @@ for f in STOP HOLD CAMPAIGN-DONE BLOCKED-USER; do
 done
 
 # ── 1) 初始化 + 读取状态 ──
-python3 "$HELPER" init >/dev/null
-DECISION_FILE=$(mktemp)
-python3 "$HELPER" prepare > "$DECISION_FILE"
-. "$DECISION_FILE"
-rm -f "$DECISION_FILE"
+helper init >/dev/null || exit 4
+DECISION_FILE=$(mktemp); helper prepare > "$DECISION_FILE" || { rm -f "$DECISION_FILE"; exit 4; }
+. "$DECISION_FILE"; rm -f "$DECISION_FILE"
 
 # ── 2) 阻塞与等待 ──
-BLOCK_CHECK=$(mktemp)
-python3 "$HELPER" block-check > "$BLOCK_CHECK"
-. "$BLOCK_CHECK"
-rm -f "$BLOCK_CHECK"
+BLOCK_CHECK=$(mktemp); helper block-check > "$BLOCK_CHECK" || { rm -f "$BLOCK_CHECK"; exit 4; }
+. "$BLOCK_CHECK"; rm -f "$BLOCK_CHECK"
 if [ "$BLOCKING" != "none" ]; then
-  say "阻塞态 $BLOCKING（ACTIVE 不得绕过）——不调用引擎"
-  exit 0
+  say "阻塞态 $BLOCKING（ACTIVE 不得绕过）——不调用引擎"; exit 0
 fi
 if [ "$WAITING" = "yes" ]; then
-  say "WAITING_RESOURCE——减频等待 600s 后重查"
-  sleep 600
-  exec "$0" "$@"
+  say "WAITING_RESOURCE——减频等待 600s 后重查"; sleep 600; exec "$0" "$@"
 fi
 
-# ── 3) 准备停滞预算 + 墙钟预算（双门）──
+# ── 3) 准备停滞预算 + 墙钟预算（浮点）──
 EFFECTIVE_CAP="$PREP_CAP"
 LAST_CAP=$(python3 "$HELPER" last-authorize-cap 2>/dev/null)
 case "$LAST_CAP" in ''|*[!0-9]*) ;; *) EFFECTIVE_CAP="$LAST_CAP" ;; esac
@@ -380,27 +452,36 @@ over_budget() {
   C) 终止：touch CAMPAIGN-DONE（交付当前状态；准备耗尽 != 方向被证伪，记 untested）
   D) 用户显式重置：编辑 $STATE 对应计数字段（须在 research-log 留一句重置理由）
 MSG
-  printf '{"type":"over-budget","kind":"%s","turns":%s,"cap":%s,"wall_min":%s,"ts":"%s"}\n' \
-    "$2" "$PREP_TURNS" "$EFFECTIVE_CAP" "$WALL_MIN" "$(date -u +%FT%TZ)" > /tmp/.r18-ob.json
-  python3 "$HELPER" ledger-append < /tmp/.r18-ob.json && rm -f /tmp/.r18-ob.json
+  OB=$(mktemp)
+  python3 - "$PREP_TURNS" "$EFFECTIVE_CAP" "$WALL_MIN" "$2" <<'PYOB' > "$OB"
+import json, sys, datetime
+print(json.dumps({"type":"over-budget","kind":sys.argv[4],"turns":int(sys.argv[1]),
+ "cap":int(sys.argv[2]),"wall_min":float(sys.argv[3]),
+ "ts":datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}))
+PYOB
+  helper ledger-append < "$OB" || true; rm -f "$OB"
   exit 2
 }
 if [ "$PREP_TURNS" -ge "$EFFECTIVE_CAP" ]; then
   if [ -n "${AUTHORIZE_JUSTIFICATION:-}" ]; then
-    printf '{"type":"authorize","new_cap":%d,"justification":%s,"ts":"%s"}\n' \
-      "$((EFFECTIVE_CAP + 10))" "\"$AUTHORIZE_JUSTIFICATION\"" "$(date -u +%FT%TZ)" > /tmp/.r18-auth.json
-    python3 "$HELPER" ledger-append < /tmp/.r18-auth.json && rm -f /tmp/.r18-auth.json \
-      && say "授权续行已记账（上限 $EFFECTIVE_CAP → $((EFFECTIVE_CAP + 10))）：$AUTHORIZE_JUSTIFICATION"
+    AUTH=$(mktemp)
+    python3 "$HELPER" auth-json "$((EFFECTIVE_CAP + 10))" "$(date -u +%FT%TZ)" > "$AUTH" || { rm -f "$AUTH"; say "授权序列化失败"; exit 5; }
+    if helper ledger-append < "$AUTH"; then
+      say "授权续行已记账（上限 $EFFECTIVE_CAP → $((EFFECTIVE_CAP + 10))）：$AUTHORIZE_JUSTIFICATION"
+    else
+      rm -f "$AUTH"; say "授权记账失败——拒绝在无账状态下超预算执行"; exit 5
+    fi
+    rm -f "$AUTH"
   else
     over_budget "准备停滞 $PREP_TURNS 轮 ≥ 上限 $EFFECTIVE_CAP" "prep-stall"
   fi
 fi
-if [ "$PREP_WALL_CAP" -gt 0 ] 2>/dev/null; then
-  WALL_NOW_OK=$(python3 -c "print('yes' if float('${WALL_MIN:-0}') >= float('$PREP_WALL_CAP') else 'no')" 2>/dev/null || echo no)
-  [ "$WALL_NOW_OK" = "yes" ] && over_budget "累计墙钟 ${WALL_MIN}min ≥ 上限 ${PREP_WALL_CAP}min" "wall-time"
+if [ "$PREP_WALL_CAP" != "0" ]; then
+  WALL_OK=$(python3 -c "import sys; print('yes' if float(sys.argv[1]) >= float(sys.argv[2]) else 'no')" "${WALL_MIN:-0}" "$PREP_WALL_CAP" 2>/dev/null || echo no)
+  [ "$WALL_OK" = "yes" ] && over_budget "累计墙钟 ${WALL_MIN}min ≥ 上限 ${PREP_WALL_CAP}min" "wall-time"
 fi
 
-# ── 4) 消息准备（自产摘要缓存 vs 调用者只读输入）──
+# ── 4) 消息准备 ──
 if [ -n "$CALLER_MSG" ]; then
   [ -f "$CALLER_MSG" ] || { say "调用者消息文件不存在: $CALLER_MSG"; exit 64; }
   MSG_SOURCE="$CALLER_MSG"; MSG_OWNED=no
@@ -429,46 +510,54 @@ fi
 codex "${ARGS[@]}" < /dev/null > "$RUN_OUT" 2>&1
 rc=$?
 
-# ── 6) 会话 ID 提取（结构化优先，文本三拼写降级）──
+# ── 6) 会话 ID 提取 ──
 NEW_SID=$( grep -oE '"thread_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || grep -oiE 'session( id|_id)?: [a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || true )
 [ -n "$NEW_SID" ] && { [ "$NEW_SID" != "$(cat "$SID_FILE" 2>/dev/null || true)" ] && echo "$NEW_SID" > "$SID_FILE"; }
 
-# ── 7) resume 连续失败 + 恢复（永不删调用者输入）──
+# ── 7) resume 连续失败 + 恢复 ──
 if [ "$rc" -ne 0 ]; then
   FAILS=$(python3 "$HELPER" resume-fails "$(cat "$SID_FILE" 2>/dev/null || echo none)")
   if [ -n "${SID:-}" ] && [ "$FAILS" -ge "$RESUME_FAIL_THRESHOLD" ]; then
     say "resume 对同一 SID 连续失败 $FAILS 次——冷启动恢复：清 SID，保留消息源"
     rm -f "$SID_FILE"
-    python3 "$HELPER" ledger-append <<< "{\"type\":\"resume-recovery\",\"sid\":\"$SID\",\"ts\":\"$(date -u +%FT%TZ)\"}"
-    if [ "$MSG_OWNED" = "yes" ]; then rm -f "$OWN_SUMMARY"; fi
+    RF=$(mktemp); printf '{"type":"resume-recovery","sid":"%s","ts":"%s"}\n' "$SID" "$(date -u +%FT%TZ)" > "$RF"
+    helper ledger-append < "$RF" || true; rm -f "$RF"
+    [ "$MSG_OWNED" = "yes" ] && rm -f "$OWN_SUMMARY"
   else
-    printf '{"type":"resume-fail","sid":"%s","rc":%d,"ts":"%s"}\n' "${SID:-none}" "$rc" "$(date -u +%FT%TZ)" > /tmp/.r18-rf.json
-    python3 "$HELPER" ledger-append < /tmp/.r18-rf.json && rm -f /tmp/.r18-rf.json
+    RF=$(mktemp); printf '{"type":"resume-fail","sid":"%s","rc":%d,"ts":"%s"}\n' "${SID:-none}" "$rc" "$(date -u +%FT%TZ)" > "$RF"
+    helper ledger-append < "$RF" || true; rm -f "$RF"
   fi
 else
-  printf '{"type":"resume-ok","sid":"%s","ts":"%s"}\n' "$(cat "$SID_FILE" 2>/dev/null || echo none)" "$(date -u +%FT%TZ)" > /tmp/.r18-ok.json
-  python3 "$HELPER" ledger-append < /tmp/.r18-ok.json && rm -f /tmp/.r18-ok.json
+  OK=$(mktemp); printf '{"type":"resume-ok","sid":"%s","ts":"%s"}\n' "$(cat "$SID_FILE" 2>/dev/null || echo none)" "$(date -u +%FT%TZ)" > "$OK"
+  helper ledger-append < "$OK" || true; rm -f "$OK"
 fi
 
-# ── 8) 结算：凭据锚定进展 + 真账累计（墙钟/token）──
-SETTLE=$(mktemp)
-python3 "$HELPER" settle > "$SETTLE"
-. "$SETTLE"
-rm -f "$SETTLE"
-TOKENS_IN=$(grep -oE '"input_tokens"[": ]+[0-9]+' "$RUN_OUT" | grep -oE '[0-9]+' | awk '{s+=$1} END {print s+0}')
-TOKENS_OUT=$(grep -oE '"output_tokens"[": ]+[0-9]+' "$RUN_OUT" | grep -oE '[0-9]+' | awk '{s+=$1} END {print s+0}')
+# ── 8) 结算（凭据类型化 + 真账 + usage 结构化）──
+SETTLE=$(mktemp); helper settle > "$SETTLE" || { rm -f "$SETTLE"; say "结算失败——保留输出，账未更新"; }
+. "$SETTLE" 2>/dev/null || true; rm -f "$SETTLE"
+USAGE=$(python3 "$HELPER" usage-from "$RUN_OUT")
+TOKENS_IN=$(printf '%s' "$USAGE" | grep -oE 'TOKENS_IN=[0-9]+' | cut -d= -f2)
+TOKENS_OUT=$(printf '%s' "$USAGE" | grep -oE 'TOKENS_OUT=[0-9]+' | cut -d= -f2)
+[ -z "$TOKENS_IN" ] && TOKENS_IN=unknown
+[ -z "$TOKENS_OUT" ] && TOKENS_OUT=unknown
 TURN_ELAPSED=$(( $(date +%s) - TURN_START ))
-python3 "$HELPER" account "$TURN_ELAPSED" "$TOKENS_IN" "$TOKENS_OUT" >/dev/null
-printf '{"type":"%s","prep_turns":%s,"total_turns":%s,"tokens_in":%s,"tokens_out":%s,"wall_sec":%s,"ts":"%s"}\n' \
-  "$([ "$NEW_PROGRESS" = "yes" ] && echo work-turn || echo prep-turn)" \
-  "$(printf '%s' "$PREP_TURNS_NOW" | grep -oE '^[0-9]+$' || echo 0)" \
-  "$(printf '%s' "$TOTAL_TURNS_NOW" | grep -oE '^[0-9]+$' || echo 0)" \
-  "$TOKENS_IN" "$TOKENS_OUT" "$TURN_ELAPSED" "$(date -u +%FT%TZ)" > /tmp/.r18-turn.json
-python3 "$HELPER" ledger-append < /tmp/.r18-turn.json && rm -f /tmp/.r18-turn.json
+python3 "$HELPER" account "$TURN_ELAPSED" "$TOKENS_IN" "$TOKENS_OUT" >/dev/null \
+  || printf 'accounting-error\tcmd=account\tdt=%s\n' "$(date -u +%FT%TZ)" >> "$LEDGER"
+TURN=$(mktemp)
+python3 - "$NEW_PROGRESS" "$PREP_TURNS_NOW" "$TOTAL_TURNS_NOW" "$TOKENS_IN" "$TOKENS_OUT" "$TURN_ELAPSED" <<'PYTURN' > "$TURN"
+import json, sys, datetime
+def iv(i, d=0):
+    try: return int(sys.argv[i])
+    except (TypeError, ValueError): return d
+print(json.dumps({"type": "work-turn" if sys.argv[1] == "yes" else "prep-turn",
+ "prep_turns": iv(2), "total_turns": iv(3), "tokens_in": sys.argv[4], "tokens_out": sys.argv[5],
+ "wall_sec": iv(6), "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}))
+PYTURN
+helper ledger-append < "$TURN" || true; rm -f "$TURN"
 
 cat "$RUN_OUT" >> campaign_log.txt
-say "本轮 rc=$rc；NEW_PROGRESS=$NEW_PROGRESS（凭据锚定）；prep=$PREP_TURNS_NOW/$EFFECTIVE_CAP；total_turns=$TOTAL_TURNS_NOW；tokens +$TOKENS_IN/+$TOKENS_OUT；session=$(cat "$SID_FILE" 2>/dev/null || echo 未建立)"
+say "本轮 rc=$rc；NEW_PROGRESS=$NEW_PROGRESS（类型化凭据=$ARTIFACT_TYPED）；prep=${PREP_TURNS_NOW:-?}/$EFFECTIVE_CAP；total_turns=${TOTAL_TURNS_NOW:-?}；tokens +${TOKENS_IN}/+${TOKENS_OUT}；session=$(cat "$SID_FILE" 2>/dev/null || echo 未建立)"
 rm -f "$RUN_OUT"
 exit $rc

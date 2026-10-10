@@ -146,7 +146,9 @@ If direct search/no researcher subagents was chosen:
 
 If researcher subagents were used, run the `verifier` agent after the draft exists. This step is mandatory and must complete before any reviewer runs. Do not run the `verifier` and `reviewer` in the same parallel batch:
 
-`Agent(subagent_type="verifier", prompt="Add inline citations to outputs/.drafts/<slug>-draft.md using the research files outputs/.drafts/<slug>-research-*.md as source material. Verify every URL. Write the complete cited brief to outputs/.drafts/<slug>-cited.md.")`
+`Agent(subagent_type="verifier", prompt="Add inline citations to outputs/.drafts/<slug>-draft.md using the research files outputs/.drafts/<slug>-research-*.md as source material. Verify every URL. ALSO audit the conclusion table against the reusable-assets contract: any candidate rejected merely because 'someone did it before / it is only a recombination' must be flagged as a misbuild (the bar is an articulable delta, not novelty of the family); transferable recipes logged only as blockers must be flagged. Write the complete cited brief (with the misbuild audit appended as a final section) to outputs/.drafts/<slug>-cited.md.")`
+
+If the verifier subagent cannot run the misbuild audit (context limits), the lead agent performs it directly on `<slug>-cited.md` before the reviewer step — the audit is mandatory along the actual call chain, not optional.
 
 After the verifier returns, verify on disk that `outputs/.drafts/<slug>-cited.md` exists. If the verifier wrote elsewhere, find the cited file and move or copy it to `outputs/.drafts/<slug>-cited.md`.
 

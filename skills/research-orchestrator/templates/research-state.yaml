@@ -36,7 +36,7 @@ hypotheses:
 # 准备循环总账（跨会话/重启/后端累计；重命名 phase/slug 不清零）
 prep:
   prep_turns: 0                  # 距上次【有信息量观测】的准备轮数——重置须有 artifact 背书（见 last_informative_artifact），纯文字变化不重置
-  prep_wall_time_min: 0.0        # 累计准备墙钟（分钟）——由外层脚本实测累计，不可文字清零
+  prep_wall_time_min: 0.0        # 准备阶段墙钟估计（人工/引擎维护；脚本只维护 total 节）
   prep_cost: null                # 可取得的 token/费用估计
   last_informative_observation: ""  # 上次有效进展是什么（何时）——描述性文字
   last_informative_artifact: none  # 进展凭据文件路径（eval json/带数字的笔记）；settle 用其内容哈希判定真进展
@@ -51,7 +51,12 @@ budget:
   total_cap: null                 # 本研究目标的累计上限
   used: 0.0                       # 已消耗（跨后端合计）
   remaining: null                 # = total_cap - used；null 表示未设上限
+
+# 外层循环实测总账（autoloop 脚本维护；助手读写本节——与 budget 分开）
+total:
+  total_turns: 0                  # 总轮次（只增不清零）
   total_wall_time_min: 0.0        # 外层循环实测累计墙钟（分钟，只增不清零）
+  total_cost: null                # 可得费用估计
   total_tokens_in: 0              # 引擎输入 token 累计（--json usage 事件解析）
   total_tokens_out: 0             # 引擎输出 token 累计
 

@@ -185,7 +185,7 @@ within the idea's lifecycle, the flaw remains fatal.
 | F7 | Secure access before proceeding. For IRB, file early. For proprietary data, secure a partnership |
 | F8 | Cut the contribution list to two or three items. Split remaining items into a follow-up paper |
 | F9 | Restart from the problem side. Interview users, run a pilot study, or document a real failure that motivates the technique |
-| F10 | Preregister two failure modes and a Limitations section before starting experiments. Include failure cases in the case-study section |
+| F10 | Preregister two failure modes and a Limitations section before **confirmatory** experiments (paper stage). Include failure cases in the case-study section. Exploratory probes may proceed with failure modes documented as known risks |
 
 ## 5. Severity escalation logic
 
@@ -206,8 +206,12 @@ Verdict implications:
 - **Any CRITICAL flaw**: verdict is Reject and Pivot **for the
   affected claim**. Do not proceed with this version of the idea.
 - **MAJOR flaws (any count)**: verdict is Accept with Revisions.
-  Defend all flaws before starting experiments; whether the defense
-  is worth the current budget is the user's call, made explicit per
+  Fix-before-experimenting is limited to **true blockers** (safety,
+  leakage, critical execution correctness, measurement interpretability);
+  paper-perfection items (baseline breadth, motivation framing, failure
+  modes, Limitations) are deferred to the paper stage and never block a
+  first exploratory probe. Whether a defense is worth the current budget
+  is the user's call, made explicit per flaw
   flaw — MAJORs never escalate to CRITICAL by accumulation.
 - **MINOR flaws only**: compatible with Strong Accept, subject to
   other evaluation steps.
