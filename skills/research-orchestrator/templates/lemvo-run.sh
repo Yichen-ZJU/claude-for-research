@@ -118,7 +118,7 @@ for j in jobs:
             st = "timed_out"      # 超时保留身份（C4）
     states.append((j.get("name", "?"), st, j))
 import json as J
-open("/tmp/.lemvo-jobstates.tmp", "w").write(J.dumps(states))
+open(".lemvo-jobstates.json", "w").write(J.dumps(states))
 if any(s in ("running", "unknown") for _, s, _ in states):
     print("PENDING " + ",".join(n for n, s, _ in states if s in ("running", "unknown")))
 elif any(s == "timed_out" for _, s, _ in states):
@@ -148,65 +148,108 @@ write_receipts() {  # $1=trigger: done|timeout|ended|corrupt
 import json, os, sys, time
 src, rdir, trigger = sys.argv[1], sys.argv[2], sys.argv[3]
 try:
-    states = json.load(open("/tmp/.lemvo-jobstates.tmp"))
+    states = json.load(open(".lemvo-jobstates.json"))   # v3：项目内，防跨项目串线
 except Exception:
     states = []
 ts = time.strftime("%Y%m%d-%H%M%S")
 for name, st, job in states:
-    rid = "%s-%s-%s.json" % (ts, trigger, name.replace("/", "_"))
+    rid = "%s-%s-%s-%d.json" % (ts, trigger, name.replace("/", "_"), os.getpid())
     rec = {"schema_version": 1, "name": name, "trigger": trigger,
            "status": st, "done_file": job.get("done_file") or job.get("wait_file"),
            "pid": job.get("pid"), "ended_epoch": time.time(), "consumed": False}
     open(os.path.join(rdir, rid), "w").write(json.dumps(rec, indent=1))
 PYR
 }
-consume_receipts_snapshot() {  # 未消费回执 → 一个合并消息文件路径（给引擎读）
-  local f
-  f=$(ls "$RECEIPTS"/*.json 2>/dev/null | head -20)
+consume_receipts_snapshot() {  # 未消费回执 → 合并消息路径；v3：只取前 20 且只确认这 20
+  local f out
+  f=$(python3 - "$RECEIPTS" <<'PYC0'
+import json, os, sys
+d = sys.argv[1]
+out = []
+for fn in sorted(os.listdir(d)):
+    if not fn.endswith(".json"): continue
+    p = os.path.join(d, fn)
+    try:
+        if json.load(open(p)).get("consumed"): continue
+    except Exception: continue
+    out.append(p)
+    if len(out) >= 20: break
+print("\n".join(out))
+PYC0
+)
   [ -z "$f" ] && return 1
-  local out; out=$(mktemp)
+  out=$(mktemp)
+  echo "$f" > "$out.list"   # v3：消费清单（mark 只确认这些）
   echo "以下后台作业已出结果（回执，未消费）：" > "$out"
   for r in $f; do
     python3 - "$r" >> "$out" <<'PYC'
 import json, sys
 r = json.load(open(sys.argv[1]))
-if r.get("consumed"): sys.exit(0)
 print("- %s: status=%s done_file=%s (run 事实；请读结果、改方法、继续；勿重跑同 run_id)" % (
     r.get("name"), r.get("status"), r.get("done_file")))
 PYC
   done
   echo "$out"
 }
-mark_receipts_consumed() {
-  python3 - "$RECEIPTS" <<'PYM'
-import json, os, sys
-d = sys.argv[1]
-for fn in os.listdir(d):
-    if not fn.endswith(".json"): continue
-    p = os.path.join(d, fn)
-    try:
-        r = json.load(open(p))
-        if not r.get("consumed"):
-            r["consumed"] = True
-            json.dump(r, open(p, "w"), indent=1)
-    except Exception: pass
+mark_receipts_consumed() {  # v3：只确认 $1 清单内的（缺省=本轮 .list）
+  local listf="${1:-}"
+  [ -z "$listf" ] && [ -f /tmp/.r22.list ] && listf=/tmp/.r22.list
+  [ -z "$listf" ] && return 0
+  while IFS= read -r r; do
+    [ -f "$r" ] || continue
+    python3 - "$r" <<'PYM'
+import json, sys
+p = sys.argv[1]
+try:
+    d = json.load(open(p))
+    d["consumed"] = True
+    json.dump(d, open(p, "w"), indent=1)
+except Exception: pass
 PYM
+  done < "$listf"
 }
 
-# ── steer 队列快照（C3：原子领取，轮中提交留给下轮）──
+# ── steer 队列快照（C3+v3：快照清单，归档只动清单内文件）──
 steer_snapshot() {
   local files out n=0
   files=$(ls "$QUEUE"/q-*.md 2>/dev/null | sort)
   [ -z "$files" ] && return 1
   out=$(mktemp)
+  printf '%s\n' "$files" > "$out.list"
   for f in $files; do cat "$f" >> "$out"; echo >> "$out"; n=$((n+1)); done
   echo "$out"
 }
-steer_archive_consumed() {  # 仅归档本轮实际包含的（快照列表）
+steer_archive_consumed() {  # v3：仅归档本轮快照清单内的（轮中提交的留队列）
+  local listf="${1:-}"
+  [ -z "$listf" ] && return 0
   mkdir -p "$ARCHIVE"
-  for f in "$QUEUE"/q-*.md; do
+  while IFS= read -r f; do
     [ -f "$f" ] && mv "$f" "$ARCHIVE/$(basename "$f")"
-  done
+  done < "$listf"
+}
+
+# ── v3：引擎在途互斥（异常重启防重复调用）──
+engine_busy() {
+  local pid; pid=$(cat .autoloop-engine.pid 2>/dev/null || echo 0)
+  [ "$pid" -gt 0 ] 2>/dev/null || return 1
+  kill -0 "$pid" 2>/dev/null || { rm -f .autoloop-engine.pid; return 1; }
+  grep -qE "codex|claude" "/proc/$pid/cmdline" 2>/dev/null
+}
+
+# ── v3：统一对账（advance 与主循环共用）──
+reconcile_gate() {  # 返回 0=可推进；1=有活作业（已提示）
+  stamp_jobs_started
+  ST=$(jobs_reconcile_once)
+  case "$ST" in
+    PENDING*) say "有作业在跑（${ST#PENDING }）——本轮不推进，等待完成"; return 1;;
+    TIMEOUT) write_receipts timeout; mv "$JOBS" "$JOBS.pending-receipt-$(date +%s)" 2>/dev/null;;
+    ENDED)   write_receipts ended;   mv "$JOBS" "$JOBS.pending-receipt-$(date +%s)" 2>/dev/null;;
+    CORRUPT) mv "$JOBS" "$JOBS.corrupt-$(date +%s)" 2>/dev/null
+             echo "作业登记 .lemvo-jobs.json 损坏已隔离——请重建作业清单并核对在跑训练（勿重跑同 run_id）" > "$QUEUE/q-$(date +%Y%m%d-%H%M%S)-sys-corrupt.md";;
+    DONE) if [ -f "$JOBS" ]; then write_receipts done; mv "$JOBS" "$JOBS.pending-receipt-$(date +%s)" 2>/dev/null;
+              log "作业全部成功——回执已写，登记保留待引擎消费"; fi;;
+  esac
+  return 0
 }
 
 # ── advance ──
@@ -218,14 +261,17 @@ if [ "$CMD" = "advance" ]; then
     say "owner 活跃（pid=$(owner_pid)）——推进请求已提交，未并行启动模型"
     exit 0
   fi
-  # 无 owner：锁下单轮（先对账回执/作业）
   owner_take || { echo "拿锁失败"; exit 1; }
   trap 'rmdir "$LOCKD" 2>/dev/null' EXIT
   export LEMVO_RC_MODE=structured
+  mkdir -p "$QUEUE" "$RECEIPTS" "$ARCHIVE"
+  # v3：先对账（活作业不推进；损坏/终态产回执进消息）
+  reconcile_gate || { set_status "WAITING_JOB|advance-reconcile"; exit 0; }
+  if engine_busy; then say "上一模型调用仍在途（pid=$(cat .autoloop-engine.pid)）——不并行推进"; exit 0; fi
   SNAP=$(steer_snapshot)
   [ -n "$MSG" ] && [ -f "$MSG" ] && bash "$0" steer "$PROJ" "$MSG" && SNAP=$(steer_snapshot)
   if [ -n "$SNAP" ]; then bash "$AUTOLOOP" "$PROJ" "$SNAP"; rc=$?; else bash "$AUTOLOOP" "$PROJ"; rc=$?; fi
-  [ $rc -eq 0 ] && { steer_archive_consumed; mark_receipts_consumed; }
+  [ $rc -eq 0 ] && [ -n "$SNAP" ] && steer_archive_consumed "$SNAP.list"
   exit $rc
 fi
 [ "$CMD" = "start" ] || usage
@@ -290,14 +336,21 @@ while :; do
     fi
   fi
 
-  # 本轮消息组装：steer 快照 + 未消费回执
+  # 本轮消息组装：steer 快照 + 未消费回执（v3：携带各自清单）
   MSG_FILE=""
   SNAP=$(steer_snapshot)
   RCPT=$(consume_receipts_snapshot)
   if [ -n "$SNAP" ] && [ -n "$RCPT" ]; then
     MSG_FILE=$(mktemp); cat "$RCPT" "$SNAP" > "$MSG_FILE"
-  elif [ -n "$SNAP" ]; then MSG_FILE="$SNAP"
-  elif [ -n "$RCPT" ]; then MSG_FILE="$RCPT"
+    cat "$RCPT.list" > "$MSG_FILE.rlist"; cp "$SNAP.list" "$MSG_FILE.slist"
+  elif [ -n "$SNAP" ]; then MSG_FILE="$SNAP"; cp "$SNAP.list" "$MSG_FILE.slist"; : > "$MSG_FILE.rlist"
+  elif [ -n "$RCPT" ]; then MSG_FILE="$RCPT"; cp "$RCPT.list" "$MSG_FILE.rlist"; : > "$MSG_FILE.slist"
+  fi
+
+  # v3：引擎在途互斥（异常重启防重复调用）
+  if engine_busy; then
+    set_status "WAITING_JOB|engine-inflight-$(cat .autoloop-engine.pid)"
+    sleep "$POLL"; TURN=$((TURN - 1)); continue
   fi
 
   set_status "RUNNING|turn-$TURN"
@@ -309,7 +362,7 @@ while :; do
 
   case $rc in
     0) FAILS=0
-       steer_archive_consumed; mark_receipts_consumed;;
+       [ -n "$MSG_FILE" ] && { steer_archive_consumed "$MSG_FILE.slist"; mark_receipts_consumed "$MSG_FILE.rlist"; };;
     2) set_status "BLOCKED|budget-decision"; log "预算决策点——控制器停止等人"; exit 2;;
     6) set_status "WAITING_USER|blocked-state"; log "引擎阻塞态（HOLD/标志）——转 WAITING_USER 长等待，不空转"; sleep 300; TURN=$((TURN - 1)); continue;;
     7) set_status "WAITING_JOB|waiting-resource"; sleep "$POLL"; TURN=$((TURN - 1)); continue;;

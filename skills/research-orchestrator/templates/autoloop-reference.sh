@@ -30,7 +30,7 @@
 # 预算决策点四选项。
 # 红线：替换活体战役脚本前先备份；对在跑进程只观察不杀。
 set -uo pipefail
-HELPER_VERSION="4.3"
+HELPER_VERSION="4.4"
 
 # ── --init 模式 ──
 if [ "${1:-}" = "--init" ]; then
@@ -108,10 +108,10 @@ python3 -c "import sys; v=float(sys.argv[1]); sys.exit(0 if v>=0 else 1)" "$PREP
 write_helper() {
   cat > "$HELPER" <<'PYEOF'
 #!/usr/bin/env python3
-"""autoloop v4.2 助手（HELPER_VERSION 4.2）。py3.6 兼容，标准库 only。"""
+"""autoloop v4.4 助手（HELPER_VERSION 4.4）。py3.6 兼容，标准库 only。"""
 import fnmatch, hashlib, json, os, re, sys
 
-HELPER_VERSION = "4.2"
+HELPER_VERSION = "4.4"
 STATE = "research-state.yaml"
 BLOCKING = {"HOLD", "STOPPED", "PAUSED", "EVIDENCE_HOLD", "STOPPED_INCONCLUSIVE",
             "BLOCKED", "BLOCKED_USER"}
@@ -349,9 +349,16 @@ def cmd_account():
     print("WALL_NOW=" + str(wall))
 
 def cmd_usage_from():
-    """S5：从输出文件解析结构化 usage 事件。argv: usage-from <file>"""
-    tin = tout = 0
+    """S5：从输出文件解析结构化 usage 事件（v4.4：兼容 token_usage 容器与
+    codex cached_input_tokens / claude cache_read|creation 字段）。"""
+    tin = tout = cached = 0
     found = False
+    def _int(u, *keys):
+        for k in keys:
+            v = u.get(k)
+            if isinstance(v, (int, float)):
+                return int(v)
+        return None
     try:
         for ln in open(sys.argv[2], encoding="utf-8", errors="replace"):
             ln = ln.strip()
@@ -361,19 +368,23 @@ def cmd_usage_from():
                 ev = json.loads(ln)
             except ValueError:
                 continue
-            u = ev.get("usage") if isinstance(ev, dict) else None
+            if not isinstance(ev, dict):
+                continue
+            u = ev.get("usage") or ev.get("token_usage")
             if isinstance(u, dict):
-                try:
-                    tin += int(u.get("input_tokens", 0)); tout += int(u.get("output_tokens", 0))
-                    found = True
-                except (TypeError, ValueError):
-                    pass
+                i = _int(u, "input_tokens", "input_tokens_count")
+                o = _int(u, "output_tokens", "output_tokens_count")
+                c = _int(u, "cached_input_tokens", "cache_read_input_tokens")
+                if i is None and o is None and c is None:
+                    continue
+                tin += i or 0; tout += o or 0; cached += c or 0
+                found = True
     except OSError:
         pass
     if found:
-        print("TOKENS_IN=%d TOKENS_OUT=%d" % (tin, tout))
+        print("TOKENS_IN=%d TOKENS_OUT=%d CACHED=%d" % (tin, tout, cached))
     else:
-        print("TOKENS_IN=unknown TOKENS_OUT=unknown")
+        print("TOKENS_IN=unknown TOKENS_OUT=unknown CACHED=unknown")
 
 def cmd_auth_json():
     """S3：授权事件真序列化（justification 经环境变量传入）。"""
@@ -437,9 +448,13 @@ helper() {
     printf 'accounting-error\tcmd=%s\tdt=%s\n' "$1" "$(date -u +%FT%TZ)" >> "$LEDGER"; return 1; }
 }
 
-# ── 0) 文件级阻塞标志 ──
+# ── 0) 文件级阻塞标志（v4.4：结构化模式下映射 rc=6，不再伪装成功轮）──
 for f in STOP HOLD CAMPAIGN-DONE BLOCKED-USER; do
-  [ -f "$f" ] && { say "标志 $f 存在——不调用引擎"; exit 0; }
+  if [ -f "$f" ]; then
+    say "标志 $f 存在——不调用引擎"
+    if [ "$RC_MODE" = "structured" ]; then exit 6; fi
+    exit 0
+  fi
 done
 
 # ── 1) 初始化 + 读取状态 ──
@@ -525,28 +540,40 @@ MSG
   MSG_SOURCE="$OWN_SUMMARY"; MSG_OWNED=yes
 fi
 
-# ── 5) 真续接调用（双引擎适配；v4.3b 权限显式化）──
+# ── v4.4：尽力计量（服务失败也记账；失败不虚报）──
+account_best_effort() {
+  local u tin tout
+  u=$(python3 "$HELPER" usage-from "$RUN_OUT" 2>/dev/null || true)
+  tin=$(printf '%s' "$u" | grep -oE 'TOKENS_IN=[0-9]+' | cut -d= -f2); [ -z "$tin" ] && tin=unknown
+  tout=$(printf '%s' "$u" | grep -oE 'TOKENS_OUT=[0-9]+' | cut -d= -f2); [ -z "$tout" ] && tout=unknown
+  python3 "$HELPER" account "$(( $(date +%s) - TURN_START ))" "$tin" "$tout" >/dev/null 2>&1 || true
+}
+
+# ── 5) 真续接调用（双引擎；v4.4：后台化+PID 登记，供控制器互斥）──
 RUN_OUT=$(mktemp); RUN_ERR=$(mktemp)
 CLAUDE_PERMS=""
 [ "${CLAUDE_SKIP_PERMS:-0}" = "1" ] && CLAUDE_PERMS="--dangerously-skip-permissions"
-if [ "$ENGINE" = "claude" ]; then
-  if [ -s "$SID_FILE" ]; then
-    SID="$(cat "$SID_FILE")"
-    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --resume "$SID" --output-format json $CLAUDE_PERMS > "$RUN_OUT" 2> "$RUN_ERR"
+run_engine() {
+  if [ "$ENGINE" = "claude" ]; then
+    if [ -s "$SID_FILE" ]; then
+      SID="$(cat "$SID_FILE")"
+      "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --resume "$SID" --output-format json $CLAUDE_PERMS > "$RUN_OUT" 2> "$RUN_ERR" &
+    else
+      "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --output-format json $CLAUDE_PERMS > "$RUN_OUT" 2> "$RUN_ERR" &
+    fi
   else
-    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --output-format json $CLAUDE_PERMS > "$RUN_OUT" 2> "$RUN_ERR"
+    if [ -s "$SID_FILE" ]; then
+      SID="$(cat "$SID_FILE")"
+      codex exec --skip-git-repo-check --json resume "$SID" "$(cat "$MSG_SOURCE")" < /dev/null > "$RUN_OUT" 2> "$RUN_ERR" &
+    else
+      codex exec --skip-git-repo-check --json "$(cat "$MSG_SOURCE")" < /dev/null > "$RUN_OUT" 2> "$RUN_ERR" &
+    fi
   fi
-  rc=$?
-else
-  if [ -s "$SID_FILE" ]; then
-    SID="$(cat "$SID_FILE")"
-    ARGS=(exec --skip-git-repo-check --json resume "$SID" "$(cat "$MSG_SOURCE")")
-  else
-    ARGS=(exec --skip-git-repo-check --json "$(cat "$MSG_SOURCE")")
-  fi
-  codex "${ARGS[@]}" < /dev/null > "$RUN_OUT" 2> "$RUN_ERR"
-  rc=$?
-fi
+  echo $! > .autoloop-engine.pid
+  wait $! ; rc=$?
+  rm -f .autoloop-engine.pid
+}
+run_engine
 
 # ── 6) 会话 ID 提取（claude session_id | codex thread_id | 文本三拼写）──
 NEW_SID=$( grep -oE '"session_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" "$RUN_ERR" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
@@ -558,7 +585,8 @@ NEW_SID=$( grep -oE '"session_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" "$RUN_ERR" | he
 # ── 7) 失败分类（v4.3c：服务错误≠会话死亡）──
 if [ "$rc" -ne 0 ]; then
   if grep -qiE 'rate.?limit|quota|billing|payment|429|503|502|temporarily|timeout|ECONNRESET|network' "$RUN_OUT" "$RUN_ERR"; then
-    say "服务类错误（限流/认证/网络）——保留 SID，不计 resume-fail"
+    say "服务类错误（限流/认证/网络）——保留 SID，不计 resume-fail；已尽力计量本轮消耗"
+    account_best_effort
     SE=$(mktemp); printf '{"type":"service-error","sid":"%s","rc":%d,"ts":"%s"}\n' "${SID:-none}" "$rc" "$(date -u +%FT%TZ)" > "$SE"
     helper ledger-append < "$SE" || true; rm -f "$SE"; rm -f "$RUN_OUT" "$RUN_ERR"
     [ "$RC_MODE" = "structured" ] && exit 8
@@ -595,34 +623,16 @@ SETTLE=$(mktemp); helper settle > "$SETTLE" || { rm -f "$SETTLE"; say "结算失
 USAGE=$(python3 "$HELPER" usage-from "$RUN_OUT")
 TOKENS_IN=$(printf '%s' "$USAGE" | grep -oE 'TOKENS_IN=[0-9]+' | cut -d= -f2)
 TOKENS_OUT=$(printf '%s' "$USAGE" | grep -oE 'TOKENS_OUT=[0-9]+' | cut -d= -f2)
+CACHE_R=$(printf '%s' "$USAGE" | grep -oE 'CACHED=[0-9]+' | cut -d= -f2)
 [ -z "$TOKENS_IN" ] && TOKENS_IN=unknown
 [ -z "$TOKENS_OUT" ] && TOKENS_OUT=unknown
 TURN_ELAPSED=$(( $(date +%s) - TURN_START ))
 python3 "$HELPER" account "$TURN_ELAPSED" "$TOKENS_IN" "$TOKENS_OUT" >/dev/null \
   || printf 'accounting-error\tcmd=account\tdt=%s\n' "$(date -u +%FT%TZ)" >> "$LEDGER"
-# v4.3f：缓存/费用口径（客户侧估算；缺失不伪零）
-CACHE_R=$(python3 -c "
-import json,sys
-try:
-  s=0
-  for ln in open(sys.argv[1],encoding='utf-8',errors='replace'):
-    ln=ln.strip()
-    if ln.startswith('{'):
-      try: s+=int(json.loads(ln).get('usage',{}).get('cache_read_input_tokens',0))
-      except Exception: pass
-  print(s)
-except Exception: print('unknown')" "$RUN_OUT" 2>/dev/null || echo unknown)
-CACHE_W=$(python3 -c "
-import json,sys
-try:
-  s=0
-  for ln in open(sys.argv[1],encoding='utf-8',errors='replace'):
-    ln=ln.strip()
-    if ln.startswith('{'):
-      try: s+=int(json.loads(ln).get('usage',{}).get('cache_creation_input_tokens',0))
-      except Exception: pass
-  print(s)
-except Exception: print('unknown')" "$RUN_OUT" 2>/dev/null || echo unknown)
+# v4.4：缓存口径统一走 helper（token_usage 容器+codex cached_input_tokens+
+# claude cache_read 都认；CACHE_R=已读缓存合计，CACHE_W 缺省 unknown 不伪零）
+[ -z "$CACHE_R" ] && CACHE_R=unknown
+CACHE_W=unknown
 COST_EST=$(grep -oE '"total_cost_usd"[": ]+[0-9.]+' "$RUN_OUT" | tail -1 | grep -oE '[0-9.]+' || echo unknown)
 TURN=$(mktemp)
 python3 - "$NEW_PROGRESS" "$PREP_TURNS_NOW" "$TOTAL_TURNS_NOW" "$TOKENS_IN" "$TOKENS_OUT" "$TURN_ELAPSED" "$CACHE_R" "$CACHE_W" "$COST_EST" <<'PYTURN' > "$TURN"
