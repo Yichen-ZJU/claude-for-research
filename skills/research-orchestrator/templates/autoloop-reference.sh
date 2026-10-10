@@ -15,13 +15,22 @@
 # v4.2（round-20）：双引擎适配——ENGINE=codex|claude（环境变量或项目内
 #  .lemvo-engine 文件，缺省 codex）。claude 分支：claude -p --resume headless
 #  调用，session id 从 --output-format json 的 session_id 字段提取。
+# v4.3（round-21，GPT runtime review 第二批关键项）：
+#  a) 引擎身份在 cd 项目目录之后读取（修误读调用者 cwd）；
+#  b) Claude 权限显式化：--dangerously-skip-permissions 仅在 CLAUDE_SKIP_PERMS=1
+#     时加入（无人值守 ≠ 默认绕过权限）；
+#  c) 错误分类：rate_limit/auth/billing/服务 5xx → exit 8（服务错误，保留 SID
+#     不计 resume-fail）；仅 SESSION_NOT_FOUND 类走冷启动恢复；
+#  d) resume-ok 仅在有真实 SID 时记账（不写 sid=none）；
+#  e) LEMVO_RC_MODE=structured：阻塞态→exit 6、WAITING_RESOURCE→exit 7
+#     （供控制器映射 WAITING_USER/WAITING_JOB；缺省模式维持旧行为 rc=0）；
+#  f) usage 解析含 cache_creation/cache_read（分列），total_cost_usd 记为
+#     客户侧估算（不称实际账单）。
 # v3/v4 行为保留：真续接、阻塞态闭环、调用者消息永不删除、YAML 权威、
 # 预算决策点四选项。
 # 红线：替换活体战役脚本前先备份；对在跑进程只观察不杀。
 set -uo pipefail
-HELPER_VERSION="4.2"
-ENGINE="${ENGINE:-$(cat .lemvo-engine 2>/dev/null || echo codex)}"
-CLAUDE_BIN="${CLAUDE_BIN:-claude}"
+HELPER_VERSION="4.3"
 
 # ── --init 模式 ──
 if [ "${1:-}" = "--init" ]; then
@@ -76,6 +85,10 @@ fi
 PROJ_DIR="${1:?用法: autoloop-reference.sh <项目目录> [调用者消息文件(只读)]}"
 CALLER_MSG="${2:-}"
 cd "$PROJ_DIR"
+# v4.3a：引擎身份在项目目录内读取
+ENGINE="${ENGINE:-$(cat .lemvo-engine 2>/dev/null || echo codex)}"
+CLAUDE_BIN="${CLAUDE_BIN:-claude}"
+RC_MODE="${LEMVO_RC_MODE:-legacy}"
 TURN_START=$(date +%s)
 STATE=research-state.yaml
 SID_FILE=.autoloop-session-id
@@ -438,11 +451,19 @@ DECISION_FILE=$(mktemp); helper prepare > "$DECISION_FILE" || { rm -f "$DECISION
 BLOCK_CHECK=$(mktemp); helper block-check > "$BLOCK_CHECK" || { rm -f "$BLOCK_CHECK"; exit 4; }
 . "$BLOCK_CHECK"; rm -f "$BLOCK_CHECK"
 if [ "$BLOCKING" != "none" ]; then
-  say "阻塞态 $BLOCKING（ACTIVE 不得绕过）——不调用引擎"; exit 0
+  say "阻塞态 $BLOCKING（ACTIVE 不得绕过）——不调用引擎"
+  [ "$RC_MODE" = "structured" ] && exit 6
+  exit 0
 fi
 if [ "$WAITING" = "yes" ]; then
-  say "WAITING_RESOURCE——减频等待 600s 后重查"; sleep 600; exec "$0" "$@"
+  say "WAITING_RESOURCE——减频等待"
+  if [ "$RC_MODE" = "structured" ]; then exit 7; fi
+  sleep 600; exec "$0" "$@"
 fi
+# 文件级标志在结构化模式下同样映射 rc=6
+for f in STOP HOLD CAMPAIGN-DONE BLOCKED-USER; do
+  if [ "$RC_MODE" = "structured" ] && [ -f "$f" ]; then say "标志 $f——blocked"; exit 6; fi
+done
 
 # ── 3) 准备停滞预算 + 墙钟预算（浮点）──
 EFFECTIVE_CAP="$PREP_CAP"
@@ -504,14 +525,16 @@ MSG
   MSG_SOURCE="$OWN_SUMMARY"; MSG_OWNED=yes
 fi
 
-# ── 5) 真续接调用（双引擎适配）──
-RUN_OUT=$(mktemp)
+# ── 5) 真续接调用（双引擎适配；v4.3b 权限显式化）──
+RUN_OUT=$(mktemp); RUN_ERR=$(mktemp)
+CLAUDE_PERMS=""
+[ "${CLAUDE_SKIP_PERMS:-0}" = "1" ] && CLAUDE_PERMS="--dangerously-skip-permissions"
 if [ "$ENGINE" = "claude" ]; then
   if [ -s "$SID_FILE" ]; then
     SID="$(cat "$SID_FILE")"
-    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --resume "$SID" --output-format json --dangerously-skip-permissions > "$RUN_OUT" 2>&1
+    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --resume "$SID" --output-format json $CLAUDE_PERMS > "$RUN_OUT" 2> "$RUN_ERR"
   else
-    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --output-format json --dangerously-skip-permissions > "$RUN_OUT" 2>&1
+    "$CLAUDE_BIN" -p "$(cat "$MSG_SOURCE")" --output-format json $CLAUDE_PERMS > "$RUN_OUT" 2> "$RUN_ERR"
   fi
   rc=$?
 else
@@ -521,33 +544,49 @@ else
   else
     ARGS=(exec --skip-git-repo-check --json "$(cat "$MSG_SOURCE")")
   fi
-  codex "${ARGS[@]}" < /dev/null > "$RUN_OUT" 2>&1
+  codex "${ARGS[@]}" < /dev/null > "$RUN_OUT" 2> "$RUN_ERR"
   rc=$?
 fi
 
 # ── 6) 会话 ID 提取（claude session_id | codex thread_id | 文本三拼写）──
-NEW_SID=$( grep -oE '"session_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
+NEW_SID=$( grep -oE '"session_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" "$RUN_ERR" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || grep -oE '"thread_id"[": ]+[a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || grep -oiE 'session( id|_id)?: [a-f0-9-]{8,}' "$RUN_OUT" | head -1 | grep -oE '[a-f0-9]{8}-[a-f0-9-]+' \
         || true )
 [ -n "$NEW_SID" ] && { [ "$NEW_SID" != "$(cat "$SID_FILE" 2>/dev/null || true)" ] && echo "$NEW_SID" > "$SID_FILE"; }
 
-# ── 7) resume 连续失败 + 恢复 ──
+# ── 7) 失败分类（v4.3c：服务错误≠会话死亡）──
 if [ "$rc" -ne 0 ]; then
+  if grep -qiE 'rate.?limit|quota|billing|payment|429|503|502|temporarily|timeout|ECONNRESET|network' "$RUN_OUT" "$RUN_ERR"; then
+    say "服务类错误（限流/认证/网络）——保留 SID，不计 resume-fail"
+    SE=$(mktemp); printf '{"type":"service-error","sid":"%s","rc":%d,"ts":"%s"}\n' "${SID:-none}" "$rc" "$(date -u +%FT%TZ)" > "$SE"
+    helper ledger-append < "$SE" || true; rm -f "$SE"; rm -f "$RUN_OUT" "$RUN_ERR"
+    [ "$RC_MODE" = "structured" ] && exit 8
+    exit "$rc"
+  fi
   FAILS=$(python3 "$HELPER" resume-fails "$(cat "$SID_FILE" 2>/dev/null || echo none)")
   if [ -n "${SID:-}" ] && [ "$FAILS" -ge "$RESUME_FAIL_THRESHOLD" ]; then
-    say "resume 对同一 SID 连续失败 $FAILS 次——冷启动恢复：清 SID，保留消息源"
-    rm -f "$SID_FILE"
-    RF=$(mktemp); printf '{"type":"resume-recovery","sid":"%s","ts":"%s"}\n' "$SID" "$(date -u +%FT%TZ)" > "$RF"
-    helper ledger-append < "$RF" || true; rm -f "$RF"
-    [ "$MSG_OWNED" = "yes" ] && rm -f "$OWN_SUMMARY"
+    if grep -qiE 'session.*not.*(found|exist)|unknown conversation|no conversation|expired' "$RUN_OUT" "$RUN_ERR"; then
+      say "会话确认不存在——冷启动恢复（清 SID，保留消息源）"
+      rm -f "$SID_FILE"
+      RF=$(mktemp); printf '{"type":"resume-recovery","reason":"session-not-found","sid":"%s","ts":"%s"}\n' "$SID" "$(date -u +%FT%TZ)" > "$RF"
+      helper ledger-append < "$RF" || true; rm -f "$RF"
+      [ "$MSG_OWNED" = "yes" ] && rm -f "$OWN_SUMMARY"
+    else
+      say "resume 连续失败 $FAILS 次但非会话死亡证据——保留 SID 记 fail 待查"
+      RF=$(mktemp); printf '{"type":"resume-fail","sid":"%s","rc":%d,"ts":"%s"}\n' "$SID" "$rc" "$(date -u +%FT%TZ)" > "$RF"
+      helper ledger-append < "$RF" || true; rm -f "$RF"
+    fi
   else
     RF=$(mktemp); printf '{"type":"resume-fail","sid":"%s","rc":%d,"ts":"%s"}\n' "${SID:-none}" "$rc" "$(date -u +%FT%TZ)" > "$RF"
     helper ledger-append < "$RF" || true; rm -f "$RF"
   fi
 else
-  OK=$(mktemp); printf '{"type":"resume-ok","sid":"%s","ts":"%s"}\n' "$(cat "$SID_FILE" 2>/dev/null || echo none)" "$(date -u +%FT%TZ)" > "$OK"
-  helper ledger-append < "$OK" || true; rm -f "$OK"
+  CUR_SID="$(cat "$SID_FILE" 2>/dev/null || true)"
+  if [ -n "$CUR_SID" ]; then   # v4.3d：无真实 SID 不写 resume-ok
+    OK=$(mktemp); printf '{"type":"resume-ok","sid":"%s","ts":"%s"}\n' "$CUR_SID" "$(date -u +%FT%TZ)" > "$OK"
+    helper ledger-append < "$OK" || true; rm -f "$OK"
+  fi
 fi
 
 # ── 8) 结算（凭据类型化 + 真账 + usage 结构化）──
@@ -561,19 +600,48 @@ TOKENS_OUT=$(printf '%s' "$USAGE" | grep -oE 'TOKENS_OUT=[0-9]+' | cut -d= -f2)
 TURN_ELAPSED=$(( $(date +%s) - TURN_START ))
 python3 "$HELPER" account "$TURN_ELAPSED" "$TOKENS_IN" "$TOKENS_OUT" >/dev/null \
   || printf 'accounting-error\tcmd=account\tdt=%s\n' "$(date -u +%FT%TZ)" >> "$LEDGER"
+# v4.3f：缓存/费用口径（客户侧估算；缺失不伪零）
+CACHE_R=$(python3 -c "
+import json,sys
+try:
+  s=0
+  for ln in open(sys.argv[1],encoding='utf-8',errors='replace'):
+    ln=ln.strip()
+    if ln.startswith('{'):
+      try: s+=int(json.loads(ln).get('usage',{}).get('cache_read_input_tokens',0))
+      except Exception: pass
+  print(s)
+except Exception: print('unknown')" "$RUN_OUT" 2>/dev/null || echo unknown)
+CACHE_W=$(python3 -c "
+import json,sys
+try:
+  s=0
+  for ln in open(sys.argv[1],encoding='utf-8',errors='replace'):
+    ln=ln.strip()
+    if ln.startswith('{'):
+      try: s+=int(json.loads(ln).get('usage',{}).get('cache_creation_input_tokens',0))
+      except Exception: pass
+  print(s)
+except Exception: print('unknown')" "$RUN_OUT" 2>/dev/null || echo unknown)
+COST_EST=$(grep -oE '"total_cost_usd"[": ]+[0-9.]+' "$RUN_OUT" | tail -1 | grep -oE '[0-9.]+' || echo unknown)
 TURN=$(mktemp)
-python3 - "$NEW_PROGRESS" "$PREP_TURNS_NOW" "$TOTAL_TURNS_NOW" "$TOKENS_IN" "$TOKENS_OUT" "$TURN_ELAPSED" <<'PYTURN' > "$TURN"
+python3 - "$NEW_PROGRESS" "$PREP_TURNS_NOW" "$TOTAL_TURNS_NOW" "$TOKENS_IN" "$TOKENS_OUT" "$TURN_ELAPSED" "$CACHE_R" "$CACHE_W" "$COST_EST" <<'PYTURN' > "$TURN"
 import json, sys, datetime
 def iv(i, d=0):
     try: return int(sys.argv[i])
     except (TypeError, ValueError): return d
+def nv(i):
+    v = sys.argv[i]
+    return int(v) if str(v).isdigit() else v
 print(json.dumps({"type": "work-turn" if sys.argv[1] == "yes" else "prep-turn",
- "prep_turns": iv(2), "total_turns": iv(3), "tokens_in": sys.argv[4], "tokens_out": sys.argv[5],
+ "prep_turns": iv(2), "total_turns": iv(3), "tokens_in": nv(4), "tokens_out": nv(5),
+ "cache_read": nv(7), "cache_write": nv(8), "cost_usd_est": sys.argv[9],
  "wall_sec": iv(6), "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}))
 PYTURN
 helper ledger-append < "$TURN" || true; rm -f "$TURN"
 
 cat "$RUN_OUT" >> campaign_log.txt
-say "本轮 rc=$rc；NEW_PROGRESS=$NEW_PROGRESS（类型化凭据=$ARTIFACT_TYPED）；prep=${PREP_TURNS_NOW:-?}/$EFFECTIVE_CAP；total_turns=${TOTAL_TURNS_NOW:-?}；tokens +${TOKENS_IN}/+${TOKENS_OUT}；session=$(cat "$SID_FILE" 2>/dev/null || echo 未建立)"
-rm -f "$RUN_OUT"
+cat "$RUN_ERR" >> campaign_log.txt 2>/dev/null || true
+say "本轮 rc=$rc；NEW_PROGRESS=$NEW_PROGRESS（类型化凭据=$ARTIFACT_TYPED）；prep=${PREP_TURNS_NOW:-?}/$EFFECTIVE_CAP；total_turns=${TOTAL_TURNS_NOW:-?}；tokens +${TOKENS_IN}/+${TOKENS_OUT} cache_r=${CACHE_R} cache_w=${CACHE_W} cost_est=${COST_EST}；session=$(cat "$SID_FILE" 2>/dev/null || echo 未建立)"
+rm -f "$RUN_OUT" "$RUN_ERR"
 exit $rc

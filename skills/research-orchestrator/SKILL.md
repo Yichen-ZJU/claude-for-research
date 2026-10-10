@@ -279,9 +279,11 @@ research-state.yaml 的 supported / refuted / inconclusive 字段承担全部
 - **`.lemvo-steer.md`**：用户指导队列。每轮开始先读它并纳入本轮决策
   （控制器在轮边界注入，成功后归档）；guidance 不需要先终止项目。
 - **`.lemvo-jobs.json`**：启动后台训练/评测作业时**必须**写（并移除已完成
-  项）：`[{"name","wait_file"|"pid","timeout_min"}]`。控制器只观察不重启；
-  续跑时按 run_id 去重——已在跑/已完成的作业不得重复提交。等待期间控制
-  器零模型调用；作业完成/超时后你被唤醒读结果、改方法、继续。
+  项）：`[{"name","done_file"(完成标志文件，优先)|"pid","timeout_min"}]`。
+  注意 **pid 结束 ≠ 成功**——有 pid 的作业须同时声明 done_file（结果/指标
+  文件）供控制器判定 succeeded；控制器只观察不重启；续跑时按 run_id 去重
+  ——已在跑/已完成的作业不得重复提交。作业完成/超时/失败会生成
+  `.lemvo-receipts/` 回执并在下一轮注入（读结果、改方法、勿重跑同 run_id）。
 - **收尾**：研究结束写 `CAMPAIGN-DONE`（内容=交付摘要）；紧急暂停写
   `STOP`（人处理）。预算决策点由单轮脚本给出三选项——unattended 模式下
   控制器停在决策点等人，不代人选。
